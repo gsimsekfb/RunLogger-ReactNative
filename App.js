@@ -18,15 +18,16 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
   const green = debug ? 'green' : ''
   const yellow = debug ? 'yellow' : ''
 
+  console.log('--- AddEditDialog:: logToEdit', logToEdit)
+
   const isAddDialog = (logToEdit === null)
   console.log('--- AddEditDialog:: isAddDialog', isAddDialog)
 
-  const [min, setMin]= useState(isAddDialog ? '0' : String(logToEdit.min))  // next
-  const [distance, setDistance]= useState('3000')
-  const [notes, setNotes]= useState('6+10')
-  let dateFromDatePicker = ''
-
-  console.log('--- AddEditDialog:: logToEdit', logToEdit)
+  const [min, setMin]= useState(isAddDialog ? '0' : String(logToEdit.min))
+  const [distance, setDistance]= useState(isAddDialog ? '0' : String(logToEdit.distance))
+  const [notes, setNotes]= useState(isAddDialog ? '' : logToEdit.notes)
+  const initialDate = isAddDialog ? new Date() : logToEdit.date;
+  let dateFromDatePicker = null;
 
   const _dataFromDatePicker = (data) => {    
     console.log('--- AddEditDialog::_dataFromDatePicker:: data: ', data)
@@ -43,7 +44,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
         <View style={{backgroundColor: green, marginTop: 160, flex:1, justifyContent: 'space-between', alignItems: 'flex-start'}}>
           <View style={{flexDirection: 'row', backgroundColor: yellow }}>
             <Text style={{fontSize: 20}}> Date: </Text>
-            <MyDatePicker sendData={_dataFromDatePicker}/>
+            <MyDatePicker initialDate={initialDate} sendData={_dataFromDatePicker}/>
           </View>
           <View style={{flexDirection: 'row', backgroundColor: yellow}}>
             <Text style={{fontSize: 20}}> Distance: </Text>
@@ -75,8 +76,9 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <TouchableOpacity onPress={() => hideAddEditDialog() }>
               <Text style={{fontSize: 20}}> Cancel </Text>
             </TouchableOpacity>                 
-            <TouchableOpacity onPress={() => 
-              sendData( {date: dateFromDatePicker, min: Number(min), distance: Number(distance), notes: notes } ) 
+            <TouchableOpacity onPress={() => {
+              sendData( {date: dateFromDatePicker, min: Number(min), distance: Number(distance), notes: notes } )
+              console.log('--- AddEditDialog::save() pressed') }
             }>
               <Text style={{fontSize: 20}}> Save </Text>
             </TouchableOpacity>          
@@ -93,7 +95,7 @@ const App = () => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------', ++progCounter)  
 
-  const [screenMonthAndYear, setScreenMonthAndYear] = useState("7.2019");
+  const [screenMonthAndYear, setScreenMonthAndYear] = useState("8.2019");
 
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const _hideAddEditDialog = () => {
@@ -105,8 +107,9 @@ const App = () => {
     setShowAddEditDialog(false)
     setDataFromAddEditDialog(data)
     console.log('--- App::_dataFromAddEditDialog:: dataFromAddEditDialog: ', dataFromAddEditDialog)
+    console.log('--- App::_dataFromAddEditDialog:: logToEdit: ', logToEdit)
   }
-  console.log('--- App:: dataFromAddEditDialog: ', dataFromAddEditDialog)
+  //console.log('--- App:: dataFromAddEditDialog: ', dataFromAddEditDialog)
 
   // console.log(new Date())
   // console.log(new Date().getDate())
@@ -159,7 +162,7 @@ const App = () => {
   function onNextButtonPress() {
     console.log(`next button press`);
     setSelectedItemIndex(-1)
-    setScreenMonthAndYear("7.2019")    
+    setScreenMonthAndYear("8.2019")    
     // setScreenMonthAndYear(nextMonthAndYear(screenMonthAndYear))    
     // console.log(typeof (nextMonthAndYear(screenMonthAndYear)));    
   }
@@ -176,7 +179,7 @@ const App = () => {
   function onEditButtonPress() {
     console.log(`Edit button press`)      
     console.log(selectedRunLogIndex)
-    setLogToEdit(runLogs[selectedRunLogIndex])
+    // setLogToEdit(runLogs[selectedRunLogIndex])
     setShowAddEditDialog(true)    
   }
 
@@ -195,28 +198,59 @@ const App = () => {
   // console.log("tt: ", tt)
   // console.log("tt-: ", new Date(tt*1000))
 
-  
-  // Sample Data 
+  const d0 = new Date('Fri May 10 2019 14:11:32 GMT+0300 (+03)')
+  const d1 = new Date('Tue Jun 18 2019 15:15:38 GMT+0300 (+03)')
+  const d2 = new Date('Tue Aug 13 2019 16:14:37 GMT+0300 (+03)')
+  const d3 = new Date('Wed Aug 14 2019 17:13:34 GMT+0300 (+03)')
+  const d4 = new Date('Wed Aug 21 2019 17:11:36 GMT+0300 (+03)')
+
+  // Data from disk
   let initialRunLogs = [
-    {index: 0, date: new Date('Fri May 10 2019 14:11:34 GMT+0300 (+03)'), min: 24, distance: 1600, notes: "(1+4)" },
-    {index: 1, date: new Date('Tue Jun 18 2019 15:11:34 GMT+0300 (+03)'), min: 14, distance: 200, notes: "(2+4)" },
-    {index: 2, date: new Date('Wed Jul 10 2019 16:11:34 GMT+0300 (+03)'), min: 24, distance: 100, notes: "(3+4)" },
-    {index: 3, date: new Date('Thu Jul 11 2019 17:11:34 GMT+0300 (+03)'), min: 10, distance: 50, notes: "(5+4)" },
-    {index: 4, date: new Date('Thu Jul 25 2019 17:11:34 GMT+0300 (+03)'), min: 10, distance: 25, notes: "" }
+    {timestamp: d0.getTime()/1000, date: d0, min: 24, distance: 1600, notes: "(1+4)" },
+    {timestamp: d1.getTime()/1000, date: d1, min: 14, distance: 200, notes: "(2+4)" },
+    {timestamp: d2.getTime()/1000, date: d2, min: 24, distance: 100, notes: "(3+4)" },
+    {timestamp: d3.getTime()/1000, date: d3, min: 10, distance: 50, notes: "(4+6)" },
+    {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(no notes)" }
   ]
   const [runLogs, setRunLogs] = useState(initialRunLogs); // todo: remove?
   
-  // Add new log from AddEditDialog
+  //console.log("initialRunLogs[0]: ", initialRunLogs[0])
+
+  // Add or Edit from AddEditDialog
   if(dataFromAddEditDialog !== '') {
-    const y = dataFromAddEditDialog.date.split('-')[2]
-    const m = dataFromAddEditDialog.date.split('-')[1]
-    const d = dataFromAddEditDialog.date.split('-')[0]
-    const newLog = { 
-      date: new Date(2000+Number(y),Number(m)-1,Number(d)), min: dataFromAddEditDialog.min, 
+    let dateFromDatePicker = dataFromAddEditDialog.date;    
+    // Note: The date from MyDatePicker comes as string if it comes from 
+    // MyDatePicker::onDateChange() function
+    if(!(dateFromDatePicker instanceof Date)) { 
+      const d = dateFromDatePicker.split('-')[0]
+      const m = dateFromDatePicker.split('-')[1]
+      const y = dateFromDatePicker.split('-')[2].split(' ')[0]
+      const time = dateFromDatePicker.split(' ')[1]
+      const hh = time.split(':')[0]
+      const mm = time.split(':')[1]
+      dateFromDatePicker = new Date(y,m-1,d,hh,mm);
+    }
+    console.log('--- App:: tt1: ', typeof(dateFromDatePicker));          
+    console.log('--- App:: tt2: ', (dateFromDatePicker instanceof Date));          
+    const newLog = { // next: Get Date() object from DatePicker      
+      timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
+      date: dateFromDatePicker, min: dataFromAddEditDialog.min, 
       distance: dataFromAddEditDialog.distance, notes: dataFromAddEditDialog.notes 
     }
+    if(logToEdit !== null) { // Edit existing log
+      console.log('--- App:: Editing existing log ...')      
+      console.log('--- App:: logToEdit', logToEdit)      
+      console.log('--- App:: dataFromAddEditDialog', dataFromAddEditDialog)      
+      console.log('--- App:: newLog', newLog)      
+      // setRunLogs([...runLogs, newLog])
+      setLogToEdit(null)
+    }
+    else {  // Add new log 
       setRunLogs([...runLogs, newLog])
-      setDataFromAddEditDialog('')
+      console.log('--- App:: Adding new log...')
+      console.log('--- App:: newLog', newLog)      
+    }
+    setDataFromAddEditDialog('')        
   }
 
   function getMonthLogs(monthAndYear /* e.g. 7.2019 */) { 
@@ -252,8 +286,8 @@ const App = () => {
     dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()] + ', ' + 
                         days[log.date.getDay()-1], 
                         itemType: itemType.dayAndDate })      
-    dataFlatList.push({ id: parseInt(log.date.getTime()/1000, 10), monthLogIndex: i,
-                        key: log.min + ' min ' + log.notes, itemType: itemType.runData })    
+    dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: log.min + 
+                        ' min, ' + log.distance + ' meters, '  + log.notes, itemType: itemType.runData })    
     
     week = getWeekOfYear(log.date)
     // console.log('i', i)  // todo: remove i
@@ -267,20 +301,22 @@ const App = () => {
 
   const [selectedRunLogIndex, setSelectedRunLogIndex] = useState(-1); 
   onItemPress = (item, index) => {
-    console.log('--- App:: onItemPress(): ');
-    console.log('selected index', index);
-    console.log('selected item', item);
-    setSelectedItemIndex(index);
-    console.log('monthLogs[index]', monthLogs[item.monthLogIndex].date)
+    // console.log('--- App:: onItemPress(): ');
+    // console.log('selected index', index);
+    // console.log('selected item', item);
+    setSelectedItemIndex(index);  // UI
+    // console.log('monthLogs[index]', monthLogs[item.monthLogIndex])
+    setLogToEdit(monthLogs[item.monthLogIndex])
 
-    let runLogIndex = -1;
-    for(const log of runLogs) {
-      if(log.date === monthLogs[item.monthLogIndex].date) {
-        console.log('found: log: ', log)
-        runLogIndex = log.index;     
-        setSelectedRunLogIndex(log.index)
-      }
-    }
+    // let runLogIndex = -1;
+    // for(const log of runLogs) {
+    //   if(log.date === monthLogs[item.monthLogIndex].date) {
+    //     // console.log('found: log: ', log)
+    //     // runLogIndex = log.timestamp;     
+    //     // setSelectedRunLogIndex(log.timestamp)
+    //     setLogToEdit(log)
+    //   }
+    // }
     // let cloneRunLogs = [...runLogs]
     // cloneRunLogs[runLogIndex].min = 99
     // console.log('edited log: ', cloneRunLogs[runLogIndex])

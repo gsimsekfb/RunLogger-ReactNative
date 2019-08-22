@@ -5,25 +5,25 @@ import DatePicker from 'react-native-datepicker'
 
 export default class MyDatePicker extends Component {
   constructor(props){
-    super(props)
-    // this.state = {date:"2016-05-15"}
-    this.state = {date:"30-07-19"}
+    super(props)    
+    this.state = { date: this.props.initialDate }
     this.props.sendData(this.state.date)
+    // console.log('--- MyDatePicker::ctor', this.props)
   }
 
   dateChange = (date) => {
     this.setState({date: date})
-    console.log('--- MyDatePicker::dateChange: ',  date)
+    console.log('--- MyDatePicker::dateChange() ',  date)
     this.props.sendData(date)
   }
  
   render(){
     return (
       <DatePicker
-        //style={{width: 200, top: 10}}
+        style={{width: 200, top: 0}}        
         date={this.state.date}
-        mode="date"
-        format="DD-MM-YYYY"
+        mode="datetime"
+        format="DD-MM-YYYY HH:mm"
         customStyles={{
           dateIcon: {
             position: 'absolute',
