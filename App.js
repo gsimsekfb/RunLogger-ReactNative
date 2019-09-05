@@ -10,7 +10,7 @@ import { clone } from '@babel/types';
 
 const monthNames = ["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"];
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 
@@ -27,11 +27,11 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
   const [distance, setDistance]= useState(isAddDialog ? '0' : String(logToEdit.distance))
   const [notes, setNotes]= useState(isAddDialog ? '' : logToEdit.notes)
   const initialDate = isAddDialog ? new Date() : logToEdit.date;
-  let dateFromDatePicker = null;
+  const [dateFromDatePicker, setDateFromDatePicker] = useState(null);
 
   const _dataFromDatePicker = (data) => {    
     console.log('--- AddEditDialog::_dataFromDatePicker:: data: ', data)
-    dateFromDatePicker = data;
+    setDateFromDatePicker(data);
   }
 
   return(
@@ -95,7 +95,7 @@ const App = () => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------', ++progCounter)  
 
-  const [screenMonthAndYear, setScreenMonthAndYear] = useState("8.2019");
+  const [screenMonthAndYear, setScreenMonthAndYear] = useState("9.2019");
 
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const _hideAddEditDialog = () => {
@@ -200,17 +200,17 @@ const App = () => {
 
   const d0 = new Date('Fri May 10 2019 14:11:32 GMT+0300 (+03)')
   const d1 = new Date('Tue Jun 18 2019 15:15:38 GMT+0300 (+03)')
-  const d2 = new Date('Tue Aug 13 2019 16:14:37 GMT+0300 (+03)')
-  const d3 = new Date('Wed Aug 14 2019 17:13:34 GMT+0300 (+03)')
-  const d4 = new Date('Wed Aug 21 2019 17:11:36 GMT+0300 (+03)')
+  const d2 = new Date('Fri Sep 13 2019 16:14:37 GMT+0300 (+03)')
+  const d3 = new Date('Sat Sep 14 2019 17:13:34 GMT+0300 (+03)')
+  const d4 = new Date('Sat Sep 21 2019 17:11:36 GMT+0300 (+03)')
 
   // Data from disk
   let initialRunLogs = [
     {timestamp: d0.getTime()/1000, date: d0, min: 24, distance: 1600, notes: "(1+4)" },
     {timestamp: d1.getTime()/1000, date: d1, min: 14, distance: 200, notes: "(2+4)" },
-    {timestamp: d2.getTime()/1000, date: d2, min: 24, distance: 100, notes: "(3+4)" },
-    {timestamp: d3.getTime()/1000, date: d3, min: 10, distance: 50, notes: "(4+6)" },
-    {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(no notes)" }
+    {timestamp: d2.getTime()/1000, date: d2, min: 24, distance: 100, notes: "(13.sep)" },
+    {timestamp: d3.getTime()/1000, date: d3, min: 10, distance: 50, notes: "(14.sep)" },
+    {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(21.sep)" }
   ]
   const [runLogs, setRunLogs] = useState(initialRunLogs); // todo: remove?
   
@@ -219,9 +219,11 @@ const App = () => {
   // Add or Edit from AddEditDialog
   if(dataFromAddEditDialog !== '') {
     let dateFromDatePicker = dataFromAddEditDialog.date;    
+    console.log('dataFromAddEditDialog: ' + JSON.stringify(dataFromAddEditDialog, null, 4) )
     // Note: The date from MyDatePicker comes as string if it comes from 
     // MyDatePicker::onDateChange() function
-    if(!(dateFromDatePicker instanceof Date)) { 
+    if(dateFromDatePicker && !(dateFromDatePicker instanceof Date)) { 
+      console.log('dateFromDatePicker: ' + dateFromDatePicker)
       const d = dateFromDatePicker.split('-')[0]
       const m = dateFromDatePicker.split('-')[1]
       const y = dateFromDatePicker.split('-')[2].split(' ')[0]
@@ -230,19 +232,22 @@ const App = () => {
       const mm = time.split(':')[1]
       dateFromDatePicker = new Date(y,m-1,d,hh,mm);
     }
-    console.log('--- App:: tt1: ', typeof(dateFromDatePicker));          
-    console.log('--- App:: tt2: ', (dateFromDatePicker instanceof Date));          
+    // console.log('--- App:: tt1: ', typeof(dateFromDatePicker));          
+    // console.log('--- App:: tt2: ', (dateFromDatePicker instanceof Date));          
     const newLog = { // next: Get Date() object from DatePicker      
       timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
       date: dateFromDatePicker, min: dataFromAddEditDialog.min, 
       distance: dataFromAddEditDialog.distance, notes: dataFromAddEditDialog.notes 
     }
-    if(logToEdit !== null) { // Edit existing log
+    if(logToEdit !== null) { // Edit (delete and re-create) existing log
       console.log('--- App:: Editing existing log ...')      
       console.log('--- App:: logToEdit', logToEdit)      
       console.log('--- App:: dataFromAddEditDialog', dataFromAddEditDialog)      
       console.log('--- App:: newLog', newLog)      
-      // setRunLogs([...runLogs, newLog])
+      let arr = [...runLogs];
+      arr.splice(arr.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
+      setRunLogs([...arr, newLog])
+      setSelectedItemIndex(-1)      
       setLogToEdit(null)
     }
     else {  // Add new log 
@@ -283,15 +288,16 @@ const App = () => {
     if(week ==! getWeekOfYear(log.date)) 
       dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
 
-    dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()] + ', ' + 
-                        days[log.date.getDay()-1], 
-                        itemType: itemType.dayAndDate })      
+    dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
+                        days[log.date.getDay()], itemType: itemType.dayAndDate })      
     dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: log.min + 
                         ' min, ' + log.distance + ' meters, '  + log.notes, itemType: itemType.runData })    
     
     week = getWeekOfYear(log.date)
     // console.log('i', i)  // todo: remove i
   }
+  // console.log("--- App:: dataFlatList: ", dataFlatList);
+
   // Add style for selected item
   dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
 
@@ -330,10 +336,14 @@ const App = () => {
         <Text style={styles.header}> {screenMonthAndYearStr} </Text>  
         <FlatList
           data={dataFlatList}
-          renderItem={({item, index}) =>           
+          renderItem={({item, index}) => { 
+            // console.log('--- App: item: ', item);
+            return ( 
             <TouchableOpacity onPress={() => this.onItemPress(item, index)}>
               <Text style={[styles[item.itemType], item.isSelected ? styles.selectedItem : '']}> {item.key} </Text>
             </TouchableOpacity>
+            )
+            }
           }
         />
         <View style={{position: 'absolute', padding: 4, flexDirection: 'row', top: 500, left: 110}}>
