@@ -111,11 +111,6 @@ const App = () => {
   }
   //console.log('--- App:: dataFromAddEditDialog: ', dataFromAddEditDialog)
 
-  // console.log(new Date())
-  // console.log(new Date().getDate())
-  // console.log(monthNames[new Date().getMonth()])
-  // console.log(new Date().getUTCFullYear())
-
   function getData(val){
     // do not forget to bind getData in constructor
     console.log(val);
@@ -144,6 +139,7 @@ const App = () => {
     let year = Number(monthAndYear.split('.')[1]);
     (1 === month) ? (month = 12, --year) : --month;
     console.log(month + '.' + year)    
+    return (String(month) + '.' + String(year))    
   }
 
   //// --- Item Press
@@ -154,31 +150,16 @@ const App = () => {
     setLogToEdit(monthLogs[item.monthLogIndex])
   }
 
-  // let items = [];
-  // for (let i = 0; i < 10; i++) {
-  //   items.push(
-  //     <TouchableHighlight>
-  //       <Text style={styles.sectionDescription}>
-  //         {i} Jul, Wed
-  //       </Text>
-  //     </TouchableHighlight>
-  //   );
-  // }   
-
   function onNextButtonPress() {
     console.log(`next button press`);
     setSelectedItemIndex(-1)
-    setScreenMonthAndYear("8.2019")    
-    // setScreenMonthAndYear(nextMonthAndYear(screenMonthAndYear))    
-    // console.log(typeof (nextMonthAndYear(screenMonthAndYear)));    
+    setScreenMonthAndYear(nextMonthAndYear(screenMonthAndYear))    
   }
 
   function onPrevButtonPress() {
     console.log(`prev button press`);
     setSelectedItemIndex(-1)
-    setScreenMonthAndYear("5.2019")    
-    // setScreenMonthAndYear(nextMonthAndYear(screenMonthAndYear))    
-    // console.log(typeof (nextMonthAndYear(screenMonthAndYear)));    
+    setScreenMonthAndYear(prevMonthAndYear(screenMonthAndYear))    
   }
 
   function onDeleteButtonPress() {
@@ -213,10 +194,10 @@ const App = () => {
   // console.log("tt-: ", new Date(tt*1000))
 
   const d0 = new Date('Fri May 10 2019 14:11:32 GMT+0300 (+03)')
-  const d1 = new Date('Tue Jun 18 2019 15:15:38 GMT+0300 (+03)')
+  const d1 = new Date('Sat Aug 31 2019 15:15:38 GMT+0300 (+03)')
   const d2 = new Date('Fri Sep 13 2019 16:14:37 GMT+0300 (+03)')
   const d3 = new Date('Sat Sep 14 2019 17:13:34 GMT+0300 (+03)')
-  const d4 = new Date('Sat Sep 21 2019 17:11:36 GMT+0300 (+03)')
+  const d4 = new Date('Tue Oct 1 2019 17:11:36 GMT+0300 (+03)')
 
   // Data from disk
   let initialRunLogs = [
@@ -224,7 +205,7 @@ const App = () => {
     {timestamp: d1.getTime()/1000, date: d1, min: 14, distance: 200, notes: "(2+4)" },
     {timestamp: d2.getTime()/1000, date: d2, min: 24, distance: 100, notes: "(13.sep)" },
     {timestamp: d3.getTime()/1000, date: d3, min: 10, distance: 50, notes: "(14.sep)" },
-    {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(21.sep)" }
+    {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(...)" }
   ]
   const [runLogs, setRunLogs] = useState(initialRunLogs); // todo: remove?
   
