@@ -175,11 +175,19 @@ const App = () => {
     // console.log(typeof (nextMonthAndYear(screenMonthAndYear)));    
   }
 
+  function onDeleteButtonPress() {
+    console.log(`Del button press`)      
+    let arr = [...runLogs];
+    arr.splice(arr.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
+    setRunLogs([...arr])
+    setSelectedItemIndex(-1)      
+    setLogToEdit(null)
+  }
+
   const [logToEdit, setLogToEdit] = useState();  
   function onEditButtonPress() {
     console.log(`Edit button press`)      
     console.log(selectedRunLogIndex)
-    // setLogToEdit(runLogs[selectedRunLogIndex])
     setShowAddEditDialog(true)    
   }
 
@@ -349,6 +357,7 @@ const App = () => {
         <View style={{position: 'absolute', padding: 4, flexDirection: 'row', top: 500, left: 110}}>
           <Button title={"Prev"} onPress={onPrevButtonPress} color="#4733FF"/>        
           <Button title={"Next"} onPress={onNextButtonPress} color="#4733FF"/>
+          <Button title={"Del"} onPress={onDeleteButtonPress} color="#4733FF"/>
           <Button title={"Edit"} onPress={onEditButtonPress} color="#4733FF"/>
           <Button title={"Add"} onPress={onAddButtonPress} color="#4733FF"/>
         </View>
