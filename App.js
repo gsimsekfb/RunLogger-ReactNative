@@ -176,7 +176,8 @@ const App = () => {
   }
 
   function onDeleteButtonPress() {
-    console.log(`Del button press`)      
+    console.log(`Del button press`) 
+    if(selectedItemIndex === -1) return;
     let arr = [...runLogs];
     arr.splice(arr.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
     setRunLogs([...arr])
