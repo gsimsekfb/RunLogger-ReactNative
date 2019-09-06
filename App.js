@@ -146,7 +146,13 @@ const App = () => {
     console.log(month + '.' + year)    
   }
 
+  //// --- Item Press
   const [selectedItemIndex, setSelectedItemIndex] = useState(-1);
+  onItemPress = (item, index) => {
+    // console.log('--- App:: onItemPress(): ');
+    setSelectedItemIndex(index);  // UI
+    setLogToEdit(monthLogs[item.monthLogIndex])
+  }
 
   // let items = [];
   // for (let i = 0; i < 10; i++) {
@@ -188,7 +194,6 @@ const App = () => {
   const [logToEdit, setLogToEdit] = useState();  
   function onEditButtonPress() {
     console.log(`Edit button press`)      
-    console.log(selectedRunLogIndex)
     setShowAddEditDialog(true)    
   }
 
@@ -299,33 +304,9 @@ const App = () => {
       // console.log('i', i)  // todo: remove i
     }
     // console.log("--- App:: dataFlatList: ", dataFlatList);
+
     // Add style for selected item
     dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
-  }
-
-  //// --- Item Press
-  const [selectedRunLogIndex, setSelectedRunLogIndex] = useState(-1); 
-  onItemPress = (item, index) => {
-    // console.log('--- App:: onItemPress(): ');
-    // console.log('selected index', index);
-    // console.log('selected item', item);
-    setSelectedItemIndex(index);  // UI
-    // console.log('monthLogs[index]', monthLogs[item.monthLogIndex])
-    setLogToEdit(monthLogs[item.monthLogIndex])
-
-    // let runLogIndex = -1;
-    // for(const log of runLogs) {
-    //   if(log.date === monthLogs[item.monthLogIndex].date) {
-    //     // console.log('found: log: ', log)
-    //     // runLogIndex = log.timestamp;     
-    //     // setSelectedRunLogIndex(log.timestamp)
-    //     setLogToEdit(log)
-    //   }
-    // }
-    // let cloneRunLogs = [...runLogs]
-    // cloneRunLogs[runLogIndex].min = 99
-    // console.log('edited log: ', cloneRunLogs[runLogIndex])
-    // setRunLogs(cloneRunLogs)
   }
 
   const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
