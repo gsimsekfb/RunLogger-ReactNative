@@ -13,7 +13,7 @@ export default class MyDatePicker extends Component {
 
   dateChange = (date) => {
     this.setState({date: date})
-    console.log('--- MyDatePicker::dateChange() ',  date)
+    // console.log('--- MyDatePicker::dateChange() ',  date)
     this.props.sendData(date)
   }
  
