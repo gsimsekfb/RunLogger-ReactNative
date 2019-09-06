@@ -174,7 +174,8 @@ const App = () => {
 
   const [logToEdit, setLogToEdit] = useState();  
   function onEditButtonPress() {
-    console.log(`Edit button press`)      
+    console.log(`Edit button press`);
+    if(selectedItemIndex < 0) return; 
     setShowAddEditDialog(true)    
   }
 
