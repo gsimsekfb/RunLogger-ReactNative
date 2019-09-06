@@ -273,47 +273,37 @@ const App = () => {
     for (const log of runLogs) {  
       if (monthAndYear === getMonthAndYear(log.date)) {
         monthLogs.push(log);
-        // console.log(log.date + ": " + (log.date.getMonth()+1) + '.' + log.date.getFullYear() + 
-        //             ", Week: " + getWeekOfYear(log.date));
       }
     }
     return monthLogs;
   }
 
-  const monthLogs = getMonthLogs( screenMonthAndYear );
-
-  // console.log("aa", getWeekOfYear(monthLogs[0].date));
-  // console.log("aa", days[monthLogs[0].date.getDay()])
-
-  const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
-
-  // --- Create flatlist
-  let dataFlatList = []
-  // const [dataFlatList, setDataFlatList] = useState([]);
+  //// --- Create flatlist
   console.log("--- App:: create dataFlatList ---")
-  let week = getWeekOfYear(monthLogs[0].date)
-  dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), itemType: itemType.week })
-  for (const [i, log] of monthLogs.entries()) {
-    if(week ==! getWeekOfYear(log.date)) 
-      dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
+  const monthLogs = getMonthLogs( screenMonthAndYear );
+  let dataFlatList = []
+  if(monthLogs && monthLogs.length > 0) {
+    let week = getWeekOfYear(monthLogs[0].date)
+    const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
+    dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), itemType: itemType.week })
+    for (const [i, log] of monthLogs.entries()) {
+      if(week ==! getWeekOfYear(log.date)) 
+        dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
 
-    dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
-                        days[log.date.getDay()], itemType: itemType.dayAndDate })      
-    dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: log.min + 
-                        ' min, ' + log.distance + ' meters, '  + log.notes, itemType: itemType.runData })    
-    
-    week = getWeekOfYear(log.date)
-    // console.log('i', i)  // todo: remove i
+      dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
+                          days[log.date.getDay()], itemType: itemType.dayAndDate })      
+      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: log.min + 
+                          ' min, ' + log.distance + ' meters, '  + log.notes, itemType: itemType.runData })    
+      
+      week = getWeekOfYear(log.date)
+      // console.log('i', i)  // todo: remove i
+    }
+    // console.log("--- App:: dataFlatList: ", dataFlatList);
+    // Add style for selected item
+    dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
   }
-  // console.log("--- App:: dataFlatList: ", dataFlatList);
 
-  // Add style for selected item
-  dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
-
-  const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
-                                Number(screenMonthAndYear.split('.')[1])
-
-
+  //// --- Item Press
   const [selectedRunLogIndex, setSelectedRunLogIndex] = useState(-1); 
   onItemPress = (item, index) => {
     // console.log('--- App:: onItemPress(): ');
@@ -338,6 +328,8 @@ const App = () => {
     // setRunLogs(cloneRunLogs)
   }
 
+  const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
+                                Number(screenMonthAndYear.split('.')[1])  
   return (
     <Fragment>
       <StatusBar barStyle="dark-content" />
