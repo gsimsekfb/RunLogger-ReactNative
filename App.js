@@ -145,7 +145,8 @@ const App = () => {
   //// --- Item Press
   const [selectedItemIndex, setSelectedItemIndex] = useState(-1);
   onItemPress = (item, index) => {
-    // console.log('--- App:: onItemPress(): ');
+    // console.log('--- App:: onItemPress(): index ' + index);
+    if(item.itemType !== 'runData') return; 
     setSelectedItemIndex(index);  // UI
     setLogToEdit(monthLogs[item.monthLogIndex])
   }
