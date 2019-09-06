@@ -243,12 +243,12 @@ const App = () => {
       console.log('--- App:: newLog', newLog)      
       let arr = [...runLogs];
       arr.splice(arr.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
-      setRunLogs([...arr, newLog])
+      setRunLogs([...arr, newLog].sort((a,b) => a.timestamp - b.timestamp))
       setSelectedItemIndex(-1)      
       setLogToEdit(null)
     }
     else {  // Add new log 
-      setRunLogs([...runLogs, newLog])
+      setRunLogs([...runLogs, newLog].sort((a,b) => a.timestamp - b.timestamp))
       console.log('--- App:: Adding new log...')
       console.log('--- App:: newLog', newLog)      
     }
