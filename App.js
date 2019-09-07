@@ -23,8 +23,8 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
   const isAddDialog = (logToEdit === null)
   console.log('--- AddEditDialog:: isAddDialog', isAddDialog)
 
-  const [min, setMin]= useState(isAddDialog ? '0' : String(logToEdit.min))
-  const [distance, setDistance]= useState(isAddDialog ? '0' : String(logToEdit.distance))
+  const [min, setMin]= useState(isAddDialog ? '' : String(logToEdit.min))
+  const [distance, setDistance]= useState(isAddDialog ? '' : String(logToEdit.distance))
   const [notes, setNotes]= useState(isAddDialog ? '' : logToEdit.notes)
   const initialDate = isAddDialog ? new Date() : logToEdit.date;
   const [dateFromDatePicker, setDateFromDatePicker] = useState(null);
@@ -59,7 +59,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <Text style={{fontSize: 20}}> Duration: </Text>
             <TextInput
               style={{height: 40, width: 80, borderColor: 'gray', borderWidth: 1}}
-              onChangeText={ text => setMin(text) }
+              onChangeText={ text => { if(text.endsWith(' ')) text = text.replace(' ', '+'); setMin(text);} }
               value={min}
             />
             <Text style={{fontSize: 20}}> minutes </Text>            
@@ -77,7 +77,11 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
               <Text style={{fontSize: 20}}> Cancel </Text>
             </TouchableOpacity>                 
             <TouchableOpacity onPress={() => {
-              sendData( {date: dateFromDatePicker, min: Number(min), distance: Number(distance), notes: notes } )
+              const minFinal = min.includes('+') 
+                ? Number(min.substr(0, min.indexOf('+'))) + Number(min.substr(min.indexOf('+')+1, min.length)) 
+                : Number(min);                
+              let notesFinal = min.includes('+') ? min + (notes === '' ? '' : ' , ' + notes) : notes
+              sendData( {date: dateFromDatePicker, min: minFinal, distance: Number(distance), notes: notesFinal } )
               console.log('--- AddEditDialog::save() pressed') }
             }>
               <Text style={{fontSize: 20}}> Save </Text>
@@ -352,7 +356,7 @@ const App = () => {
       let comma = ', ';
       const min = log.min === 0 ? '' : (log.min + ' min ');      
       const dis = log.distance === 0 ? '' : (comma + log.distance + ' meters ');
-      const notes = (log.notes === '' ? '' : comma) + log.notes;
+      const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
       dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: min + dis + 
                           notes, itemType: itemType.runData })    
       
