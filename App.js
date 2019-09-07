@@ -6,6 +6,7 @@ import {
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import MyDatePicker from './src/MyDatePicker';
+import GR from './Appx';
 import { clone } from '@babel/types';
 
 const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -51,6 +52,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <TextInput
               style={{height: 40, width: 80, borderColor: 'gray', borderWidth: 1}}
               onChangeText={ text => setDistance(text) }
+              keyboardType={'number-pad'}
               value={distance}
             />
             <Text style={{fontSize: 20}}> meters </Text>            
@@ -103,12 +105,13 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 ***/
 
 let progCounter = 0;
-const App = () => {
-
+const App = (gesture) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------', ++progCounter)  
 
+  //// --- File 
   var RNFS = require('react-native-fs');
+  // https://github.com/itinance/react-native-fs
   // console.log('RNFS: ' + RNFS.DocumentDirectoryPath)
   var path = RNFS.DocumentDirectoryPath + '/test1';
 
@@ -153,12 +156,19 @@ const App = () => {
     // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
   }
 
-  const [screenMonthAndYear, setScreenMonthAndYear] = useState("9.2019");
+  const now = new Date();  
+  const currentMonthAndYear = String(now.getMonth()+1) + '.' + String(now.getFullYear())
+  const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
+  
+  //// --- Gesture 
+  console.log('--- gesture: ' + JSON.stringify(gesture));
+  if(gesture.gesture === 'SWIPE_LEFT') onPrevButtonPress();
+  else if(gesture.gesture === 'SWIPE_RIGHT') onNextButtonPress();
+  
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const _hideAddEditDialog = () => {
     setShowAddEditDialog(false)
   }
-
   const [dataFromAddEditDialog, setDataFromAddEditDialog] = useState('')
   const _dataFromAddEditDialog = (data) => {  // AddEditDialog on Save button
     setShowAddEditDialog(false)

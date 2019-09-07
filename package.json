@@ -12,7 +12,8 @@
     "react": "16.8.6",
     "react-native": "0.60.4",
     "react-native-datepicker": "^1.7.2",
-    "react-native-fs": "^2.14.1"
+    "react-native-fs": "^2.14.1",
+    "react-native-swipe-gestures": "^1.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
