@@ -345,10 +345,16 @@ const App = () => {
       if(week ==! getWeekOfYear(log.date)) 
         dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
 
+      // Date
       dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
                           days[log.date.getDay()], itemType: itemType.dayAndDate })      
-      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: log.min + 
-                          ' min, ' + log.distance + ' meters, '  + log.notes, itemType: itemType.runData })    
+      // Min, meter, notes
+      let comma = ', ';
+      const min = log.min === 0 ? '' : (log.min + ' min ');      
+      const dis = log.distance === 0 ? '' : (comma + log.distance + ' meters ');
+      const notes = (log.notes === '' ? '' : comma) + log.notes;
+      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: min + dis + 
+                          notes, itemType: itemType.runData })    
       
       week = getWeekOfYear(log.date)
       // console.log('i', i)  // todo: remove i
