@@ -1,6 +1,6 @@
 import React, {Fragment, useState} from 'react';
 import {
-  SafeAreaView, StyleSheet, ScrollView, View, Text, StatusBar, TextInput,
+  Image, StyleSheet, ScrollView, View, Text, StatusBar, TextInput,
   TouchableHighlight, FlatList, TouchableOpacity, Button, Modal
 } from 'react-native';
 
@@ -402,35 +402,46 @@ const App = (gestureFromGR) => {
   const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1])  
   return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <Text style={styles.header}> {screenMonthAndYearStr} </Text>  
-        <FlatList
-          data={dataFlatList}
-          renderItem={({item, index}) => { 
-            // console.log('--- App: item: ', item);
-            return ( 
+    <View style={{flex: 1}}>
+      <Text style={styles.header}> {screenMonthAndYearStr} </Text>
+      <FlatList
+        data={dataFlatList}
+        renderItem={({ item, index }) => {
+          // console.log('--- App: item: ', item);
+          return (
             <TouchableOpacity onPress={() => this.onItemPress(item, index)}>
               <Text style={[styles[item.itemType], item.isSelected ? styles.selectedItem : '']}> {item.key} </Text>
             </TouchableOpacity>
-            )
-            }
-          }
-        />
-        <View style={{position: 'absolute', padding: 4, flexDirection: 'row', top: 500, left: 110}}>
-          <Button title={"Prev"} onPress={onPrevButtonPress} color="#4733FF"/>        
-          <Button title={"Next"} onPress={onNextButtonPress} color="#4733FF"/>
-          <Button title={"Del"} onPress={onDeleteButtonPress} color="#4733FF"/>
-          <Button title={"Edit"} onPress={onEditButtonPress} color="#4733FF"/>
-          <Button title={"Add"} onPress={onAddButtonPress} color="#4733FF"/>
-        </View>
-        { showAddEditDialog ? 
-          <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog}/> 
-          : null 
+          )
         }
-      </SafeAreaView>
-    </Fragment>
+        }
+        style={{ backgroundColor: '' }}
+      />
+      <View style={{ height: 60,
+        padding: 2, flexDirection: 'row', backgroundColor: 'grey'
+      }}>
+        <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
+          <Image source={require('./left_arrow.png')} />
+        </TouchableOpacity>     
+        <TouchableOpacity style={styles.button} onPress={onNextButtonPress}>
+          <Image source={require('./right_arrow.png')} />
+        </TouchableOpacity>          
+        <TouchableOpacity style={styles.button} onPress={onDeleteButtonPress}>
+          <Image source={require('./delete.png')} />
+        </TouchableOpacity>    
+        <TouchableOpacity style={styles.button} onPress={onEditButtonPress}>
+          <Image source={require('./edit.png')} />
+        </TouchableOpacity>                    
+        <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
+          <Image source={require('./plus.png')} />
+        </TouchableOpacity> 
+
+      </View>
+      {showAddEditDialog ?
+        <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} />
+        : null
+      }
+    </View>
   );
 };
 
@@ -469,6 +480,9 @@ const styles = StyleSheet.create({
   selectedItem: {    
     backgroundColor: "yellow",
   },      
+  button: {
+    flex:1, alignItems:'center', justifyContent:'center', alignSelf:'stretch', margin:5
+  }
 });
 
 export default App;
