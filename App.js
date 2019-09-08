@@ -105,9 +105,18 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 ***/
 
 let progCounter = 0;
-const App = (gesture) => {
+let gesture = null;
+let lastSwipeId = 0;
+const App = (gestureFromGR) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------', ++progCounter)  
+
+  //// ---
+  // const [gesture, setGesture] = useState(null);
+  gesture = gesture === 'reset' ? null : gestureFromGR.gesture;  
+  // console.log('----- App: gestureFromGR.gesture: ', gestureFromGR.gesture)  
+  // console.log('----- App: gestureFromGR.swipeId: ', gestureFromGR.swipeId)  
+
 
   //// --- File 
   var RNFS = require('react-native-fs');
@@ -132,7 +141,7 @@ const App = (gesture) => {
     RNFS.readFile(path, 'utf8')
       .then((content) => {
         console.log('--- App:: readFromFile() from ' + path)
-        console.log('--- App:: FILE content: ' + content);    
+        // console.log('--- App:: FILE content: ' + content);    
         const parsed = JSON.parse(content);
         // console.log('--- FILE parsed.t: ' + typeof(parsed));     
         // console.log('--- FILE parsed.l: ' + parsed.length);     
@@ -156,15 +165,12 @@ const App = (gesture) => {
     // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
   }
 
+  ///
   const now = new Date();  
   const currentMonthAndYear = String(now.getMonth()+1) + '.' + String(now.getFullYear())
   const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
   
-  //// --- Gesture 
-  console.log('--- gesture: ' + JSON.stringify(gesture));
-  if(gesture.gesture === 'SWIPE_LEFT') onPrevButtonPress();
-  else if(gesture.gesture === 'SWIPE_RIGHT') onNextButtonPress();
-  
+  ///
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const _hideAddEditDialog = () => {
     setShowAddEditDialog(false)
@@ -219,6 +225,20 @@ const App = (gesture) => {
     setLogToEdit(monthLogs[item.monthLogIndex])
   }
 
+  //// --- Gesture 
+  console.log('--- App:: gesture: ' + JSON.stringify(gesture));
+  if(gesture === 'SWIPE_LEFT' && lastSwipeId !== gestureFromGR.swipeId) { 
+    gesture = 'reset';
+    lastSwipeId = gestureFromGR.swipeId;
+    onNextButtonPress();
+  }
+  else if(gesture === 'SWIPE_RIGHT' && lastSwipeId !== gestureFromGR.swipeId) {
+    gesture = 'reset';   
+    lastSwipeId = gestureFromGR.swipeId;
+    onPrevButtonPress();
+  }
+
+  //// --- Buttons
   function onNextButtonPress() {
     console.log(`next button press`);
     setSelectedItemIndex(-1)

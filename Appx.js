@@ -6,10 +6,11 @@ import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 // import console = require('console');
 import App from './App';
 
+let swipeId = 0;  // todo
 export default class GR extends Component {
 
   constructor(props) {
-    console.log('--- GR');
+    console.log('--- GR::ctor...');
     super(props);
     this.state = {
       myText: 'I\'m ready to get swiped!',
@@ -34,9 +35,11 @@ export default class GR extends Component {
     this.setState({myText: 'You swiped right!'});
   }
 
-  onSwipe(gestureName, gestureState) {
+  onSwipe(gestureName, gestureState) {    
     const {SWIPE_UP, SWIPE_DOWN, SWIPE_LEFT, SWIPE_RIGHT} = swipeDirections;
     this.setState({gestureName: gestureName});
+    // console.log('--- GR:: onSwipe() gestureName: ' + gestureName);     
+    ++swipeId;
     switch (gestureName) {
       case SWIPE_UP:
         //this.setState({backgroundColor: 'red'});
@@ -45,11 +48,11 @@ export default class GR extends Component {
         //this.setState({backgroundColor: 'green'});
         break;
       case SWIPE_LEFT:
-        console.log('LLL');
+        // console.log('LLL');
         //this.setState({backgroundColor: 'blue'});
         break;
       case SWIPE_RIGHT:
-        console.log('RRR');
+        // console.log('RRR');
         //this.setState({backgroundColor: 'yellow'});
         break;
     }
@@ -61,6 +64,8 @@ export default class GR extends Component {
       velocityThreshold: 0.3,
       directionalOffsetThreshold: 80
     };
+
+    // console.log('--- GR:: render() gesture: ' + this.state.gesture);   
 
     return (
       <GestureRecognizer
@@ -75,7 +80,7 @@ export default class GR extends Component {
           backgroundColor: this.state.backgroundColor
         }}
         >
-        <App gesture={this.state.gestureName} />
+        <App gesture={this.state.gestureName} swipeId={swipeId} />
       </GestureRecognizer>
     );
   }
