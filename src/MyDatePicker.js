@@ -24,18 +24,18 @@ export default class MyDatePicker extends Component {
         date={this.state.date}
         mode="datetime"
         format="DD-MM-YYYY HH:mm"
-        customStyles={{
-          dateIcon: {
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            marginLeft: 0
-          },
-          dateInput: {
-            marginLeft: 36
-          }
-          // ... You can check the source to find the other keys.
-        }}
+        // customStyles={{
+        //   dateIcon: {
+        //     position: 'absolute',
+        //     left: 0,
+        //     top: 0,
+        //     marginLeft: 0
+        //   },
+        //   dateInput: {
+        //     marginLeft: 36
+        //   }
+        //   // ... You can check the source to find the other keys.
+        // }}
         onDateChange={(date) => {this.dateChange(date)}}
       />
     )

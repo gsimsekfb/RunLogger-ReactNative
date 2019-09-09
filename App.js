@@ -331,9 +331,7 @@ const App = (gestureFromGR) => {
         }
         style={{ backgroundColor: '' }}
       />
-      <View style={{ height: 60,
-        padding: 2, flexDirection: 'row', backgroundColor: 'grey'
-      }}>
+      <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: 'grey' }}>
         <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
           <Image source={require('./left_arrow.png')} />
         </TouchableOpacity>     
@@ -349,7 +347,6 @@ const App = (gestureFromGR) => {
         <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
           <Image source={require('./plus.png')} />
         </TouchableOpacity> 
-
       </View>
       {showAddEditDialog ?
         <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} />
