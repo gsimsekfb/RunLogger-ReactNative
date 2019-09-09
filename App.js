@@ -39,7 +39,14 @@ const App = (gestureFromGR) => {
   var path = RNFS.DocumentDirectoryPath + '/test1';
 
   function writeToFile(newRunLogs) {
-    // console.log('aaa: ' + JSON.stringify(newRunLogs));        
+    // console.log('aaa: ' + JSON.stringify(newRunLogs));    
+    // Todo: Clear instead of delete
+    RNFS.unlink(path).then(() => {
+      console.log('FILE DELETED');
+    })
+    .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
+      console.log(err.message);
+    });        
     RNFS.writeFile(path, JSON.stringify(newRunLogs), 'utf8')
       .then((success) => {
         console.log('FILE written: ' + path);        
@@ -174,7 +181,7 @@ const App = (gestureFromGR) => {
     setSelectedItemIndex(-1)      
     setLogToEdit(null)
 
-    RNFS.unlink(path).then(() => {
+    RNFS.unlink(path).then(() => {  // todo
       console.log('FILE DELETED');
     })
     .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
