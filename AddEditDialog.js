@@ -1,4 +1,4 @@
-import React, {Fragment, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   Image, StyleSheet, ScrollView, View, Text, StatusBar, TextInput,
   TouchableHighlight, FlatList, TouchableOpacity, Button
@@ -6,15 +6,26 @@ import {
 import Modal from 'react-native-modal';
 import MyDatePicker from './src/MyDatePicker';
 
+// let xx = 0;
 const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
-    const debug = 0
-    const green = debug ? 'green' : ''
-    const yellow = debug ? 'yellow' : ''
-  
-    console.log('--- AddEditDialog:: logToEdit', logToEdit)
+    // ++xx;
+    // console.log('--- AddEditDialog:: xx: ' + xx);
+    
+    const [firstLoad, setFirstLoad] = useState(true);
+    const inputRef = useRef(null);
+    useEffect(                
+      () => { 
+        if(firstLoad) {            
+            inputRef.current.focus();   // todo: this func. does not trigger keyboard intermittently 
+            setFirstLoad(false);
+        }
+      }
+    );    
+
+    // console.log('--- AddEditDialog:: logToEdit', logToEdit)
 
     const isAddDialog = (logToEdit === null)
-    console.log('--- AddEditDialog:: isAddDialog', isAddDialog)
+    // console.log('--- AddEditDialog:: isAddDialog', isAddDialog)
   
     // const [modalVisible, setModalVisible]= useState(true)
     const [min, setMin]= useState(isAddDialog ? '' : String(logToEdit.min))
@@ -24,7 +35,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
     const [dateFromDatePicker, setDateFromDatePicker] = useState(null);
   
     const _dataFromDatePicker = (data) => {    
-      console.log('--- AddEditDialog::_dataFromDatePicker:: data: ', data)
+      // console.log('--- AddEditDialog::_dataFromDatePicker:: data: ', data)
       setDateFromDatePicker(data);
     }
 
@@ -53,7 +64,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
               {/* <Text style={{fontSize: 16}}> Distance: </Text> */}
               <TextInput
-                style={{height: 40, width: 80, color: 'grey', fontSize: 16, borderColor: 'gray', borderWidth: 1}}
+                style={{height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => setDistance(text) }
                 keyboardType={'number-pad'}
                 value={distance}
@@ -64,17 +75,18 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
               {/* <Text style={{fontSize: 16}}> Duration: </Text> */}
               <TextInput
-                style={{height: 40, width: 80, color: 'grey', fontSize: 16, borderColor: 'gray', borderWidth: 1}}
+                style={{height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => { if(text.endsWith(' ')) text = text.replace(' ', '+'); setMin(text);} }
                 value={min}
                 placeholder='Duration'
+                ref={inputRef}
               />
               <Text style={{fontSize: 16}}> minutes </Text>            
             </View>            
             <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM}}>
               {/* <Text style={{fontSize: 16}}> Notes: </Text> */}
               <TextInput
-                style={{flex:1, height: 40, color: 'grey', fontSize: 16, borderColor: 'gray', borderWidth: 1}}
+                style={{flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => setNotes(text) }
                 value={notes}
                 placeholder='Notes'
@@ -100,7 +112,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
     },
     content: {
       backgroundColor: 'white',
-      padding: 20,
+      padding: 16,
       margin: 10,
       borderRadius: 4,
       borderColor: 'rgba(0, 0, 0, 0.1)',
