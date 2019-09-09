@@ -80,13 +80,16 @@ const App = (gestureFromGR) => {
   }
 
   ////
-  if(progCounter === 1) {
+  const [runLogs, setRunLogs] = useState([]);
+
+  if(progCounter === 1 || runLogs.length === 0) {
     console.log('--- App:: Reading RunLogs from file..')
     readFromFile();
     // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
   }
 
-  ///
+
+  ////
   const now = new Date();  
   const currentMonthAndYear = String(now.getMonth()+1) + '.' + String(now.getFullYear())
   const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
@@ -206,29 +209,6 @@ const App = (gestureFromGR) => {
     //             {date: new Date('Tue Jul 30 2019 17:11:34 GMT+0300 (+03)'), min: 30, distance: 25, notes: "" }
     // ])   
   }  
-
-  // UNIX time
-  // const tt = new Date().getTime()/1000;
-  // console.log("tt: ", tt)
-  // console.log("tt-: ", new Date(tt*1000))
-
-  const d0 = new Date('Fri May 10 2019 14:11:32 GMT+0300 (+03)')
-  const d1 = new Date('Sat Aug 31 2019 15:15:38 GMT+0300 (+03)')
-  const d2 = new Date('Fri Sep 13 2019 16:14:37 GMT+0300 (+03)')
-  const d3 = new Date('Sat Sep 14 2019 17:13:34 GMT+0300 (+03)')
-  const d4 = new Date('Tue Oct 1 2019 17:11:36 GMT+0300 (+03)')
-
-  // Data from disk
-  let initialRunLogs = [
-    // {timestamp: d0.getTime()/1000, date: d0, min: 24, distance: 1600, notes: "(1+4)" },
-    // {timestamp: d1.getTime()/1000, date: d1, min: 14, distance: 200, notes: "(2+4)" },
-    // {timestamp: d2.getTime()/1000, date: d2, min: 24, distance: 100, notes: "(13.sep)" },
-    // {timestamp: d3.getTime()/1000, date: d3, min: 10, distance: 50, notes: "(14.sep)" },
-    // {timestamp: d4.getTime()/1000, date: d4, min: 10, distance: 25, notes: "(...)" }
-  ]
-  const [runLogs, setRunLogs] = useState(initialRunLogs); // todo: remove?
-  
-  //console.log("initialRunLogs[0]: ", initialRunLogs[0])
 
   // Add or Edit from AddEditDialog
   if(dataFromAddEditDialog !== '') {
