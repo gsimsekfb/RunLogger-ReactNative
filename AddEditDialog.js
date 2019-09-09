@@ -52,6 +52,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 
     return(
         <Modal
+          style={styles.container}
           isVisible={true}
           onBackdropPress={() => hideAddEditDialog()}
         >
@@ -64,7 +65,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
               {/* <Text style={{fontSize: 16}}> Distance: </Text> */}
               <TextInput
-                style={{height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
+                style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => setDistance(text) }
                 keyboardType={'number-pad'}
                 value={distance}
@@ -75,7 +76,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
               {/* <Text style={{fontSize: 16}}> Duration: </Text> */}
               <TextInput
-                style={{height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
+                style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => { if(text.endsWith(' ')) text = text.replace(' ', '+'); setMin(text);} }
                 value={min}
                 placeholder='Duration'
@@ -107,13 +108,13 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 
   const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      backgroundColor: 'green',
+      justifyContent: 'flex-end',
+      flexDirection: 'column',      
+      // backgroundColor: 'green',
     },
     content: {
       backgroundColor: 'white',
       padding: 16,
-      margin: 10,
       borderRadius: 4,
       borderColor: 'rgba(0, 0, 0, 0.1)',
     },
