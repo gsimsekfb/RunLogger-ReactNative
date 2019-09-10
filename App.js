@@ -141,11 +141,14 @@ const App = (gestureFromGR) => {
   }
 
   //// --- Item Press
-  const [selectedItemIndex, setSelectedItemIndex] = useState(-1);
+  const [monthLogIndex, setMonthLogIndex] = useState(-1);   // monthLog array index of selected UI item
+  const [selectedItemIndex, setSelectedItemIndex] = useState(-1);   // UI row index
   onItemPress = (item, index) => {
-    // console.log('--- App:: onItemPress(): index ' + index);
+    console.log('--- App:: onItemPress(): item.monthLogIndex ' + item.monthLogIndex);
+    console.log('--- App:: onItemPress(): index ' + index);
     if(item.itemType !== 'runData') return; 
     setSelectedItemIndex(index);  // UI
+    setMonthLogIndex(item.monthLogIndex);
     setLogToEdit(monthLogs[item.monthLogIndex])
   }
 
@@ -195,8 +198,9 @@ const App = (gestureFromGR) => {
 
   const [logToEdit, setLogToEdit] = useState();  
   function onEditButtonPress() {
-    console.log(`Edit button press`);
+    // console.log(`Edit button press, selectedItemIndex: ` + selectedItemIndex);
     if(selectedItemIndex < 0) return; 
+    if(!logToEdit) setLogToEdit(monthLogs[monthLogIndex]);
     setShowAddEditDialog(true)    
   }
 
