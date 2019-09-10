@@ -277,18 +277,16 @@ const App = (gestureFromGR) => {
     const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
     dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), itemType: itemType.week })
     for (const [i, log] of monthLogs.entries()) {
-      if(week ==! getWeekOfYear(log.date)) 
+      if(week !== getWeekOfYear(log.date)) 
         dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
 
-      // Date
-      dataFlatList.push({ key: log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
-                          days[log.date.getDay()], itemType: itemType.dayAndDate })      
+      const dateStr = log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
+                      days[log.date.getDay()];
       // Min, meter, notes
-      let comma = ', ';
       const min = log.min === 0 ? '' : (log.min + ' min ');      
-      const dis = log.distance === 0 ? '' : (comma + log.distance + ' meters ');
+      const dis = log.distance === 0 ? '' : (', ' + log.distance + ' meters ');
       const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
-      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: min + dis + 
+      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
                           notes, itemType: itemType.runData })    
       
       week = getWeekOfYear(log.date)
@@ -300,8 +298,8 @@ const App = (gestureFromGR) => {
     dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
   }
 
-  const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
-                                Number(screenMonthAndYear.split('.')[1])  
+  const screenMonthAndYearStr = '< ' + monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
+                                Number(screenMonthAndYear.split('.')[1]) + ' >';
   return (
     <View style={{flex: 1}}>
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
@@ -318,7 +316,7 @@ const App = (gestureFromGR) => {
         }
         style={{ backgroundColor: '' }}
       />
-      <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: 'grey' }}>
+      <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: '#d9d9d9' }}>
         <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
           <Image source={require('./left_arrow.png')} />
         </TouchableOpacity>     
@@ -347,7 +345,9 @@ const styles = StyleSheet.create({
   header: {
     textAlign: 'center',
     fontSize: 20,
-    backgroundColor: Colors.light,
+    height: 32,
+    backgroundColor: '#f2f2f2',
+    padding: 2,
   },
   text: {
     textAlign: 'center',
@@ -359,24 +359,24 @@ const styles = StyleSheet.create({
   },
   week: {    
     padding: 10,
-    fontSize: 18,
+    fontSize: 16,
     height: 44,
-    backgroundColor: "#8c8c8c",
+    backgroundColor: "#d9d9d9",
   },    
   dayAndDate: {    
     padding: 10,
-    fontSize: 18,
+    fontSize: 14,
     height: 44,
     backgroundColor: "#d9d9d9",
   },    
   runData: {    
     padding: 10,
-    fontSize: 18,
+    fontSize: 14,
     height: 44,
     backgroundColor: "white",
   },
   selectedItem: {    
-    backgroundColor: "yellow",
+    backgroundColor: "#ccebff",
   },      
   button: {
     flex:1, alignItems:'center', justifyContent:'center', alignSelf:'stretch', margin:5
