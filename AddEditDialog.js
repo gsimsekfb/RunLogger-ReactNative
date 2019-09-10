@@ -57,13 +57,13 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
           onBackdropPress={() => hideAddEditDialog()}
         >
           <View style={styles.content}>
-            <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}> Add Log </Text>           
+            <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}>  
+                { (isAddDialog ? 'Add' : 'Edit') + ' Log' }
+            </Text>           
             <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM }}>
-              {/* <Text style={{fontSize: 16}}> Date: </Text> */}
               <MyDatePicker initialDate={initialDate} sendData={_dataFromDatePicker}/>
             </View>
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
-              {/* <Text style={{fontSize: 16}}> Distance: </Text> */}
               <TextInput
                 style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => setDistance(text) }
@@ -74,7 +74,6 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
               <Text style={{fontSize: 16}}> meters </Text>            
             </View>          
             <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
-              {/* <Text style={{fontSize: 16}}> Duration: </Text> */}
               <TextInput
                 style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => { if(text.endsWith(' ')) text = text.replace(' ', '+'); setMin(text);} }
@@ -85,7 +84,6 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
               <Text style={{fontSize: 16}}> minutes </Text>            
             </View>            
             <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM}}>
-              {/* <Text style={{fontSize: 16}}> Notes: </Text> */}
               <TextInput
                 style={{flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
                 onChangeText={ text => setNotes(text) }
