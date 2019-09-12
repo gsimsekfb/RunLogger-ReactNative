@@ -60,18 +60,14 @@ const App = (gestureFromGR) => {
 
   function readFromFile() {
     RNFS.readFile(path, 'utf8')
-      .then((content) => {
+      .then((content) => {  // content: string
         console.log('--- App:: readFromFile() from ' + path)
         // console.log('--- App:: FILE content: ' + content);    
-        const parsed = JSON.parse(content);
-        // console.log('--- FILE parsed.t: ' + typeof(parsed));     
-        // console.log('--- FILE parsed.l: ' + parsed.length);     
+        const parsed = JSON.parse(content); // parsed: array
         // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
-        // console.log('--- FILE parsed.d: ' + typeof(parsed[0].date));
         parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
-        // console.log('--- FILE parsed.d: ' + typeof(parsed[0].date));
-        // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
         // return content;  // todo: how to use return from then()
+        console.log('--- App:: setRunlogs() in readFromFile()..');
         setRunLogs(parsed)
       })
       .catch((err) => {
@@ -82,12 +78,30 @@ const App = (gestureFromGR) => {
   ////
   const [runLogs, setRunLogs] = useState([]);
 
-  if(progCounter === 1 || runLogs.length === 0) {
+  //// First app start
+  if(progCounter === 1) {
     console.log('--- App:: Reading RunLogs from file..')
     readFromFile();
     // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
   }
 
+  //// runLogs comes empty from wake up from sleep
+  if(runLogs.length === 0 && progCounter > 1) {
+    RNFS.readFile(path, 'utf8')
+    .then((content) => {
+      console.log('--- App:: readFile() from ' + path);
+      const parsed = JSON.parse(content);
+      parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
+      if(parsed.length) { // next: problems here
+        console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
+        console.log('--- App:: setRunlogs()');
+        setRunLogs(parsed);
+      }
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });    
+  }
 
   ////
   const now = new Date();  
@@ -153,7 +167,7 @@ const App = (gestureFromGR) => {
   }
 
   //// --- Gesture 
-  console.log('--- App:: gesture: ' + JSON.stringify(gesture));
+  // console.log('--- App:: gesture: ' + JSON.stringify(gesture));
   if(gesture === 'SWIPE_LEFT' && lastSwipeId !== gestureFromGR.swipeId) { 
     gesture = 'reset';
     lastSwipeId = gestureFromGR.swipeId;
@@ -186,13 +200,6 @@ const App = (gestureFromGR) => {
     setRunLogs(newRunLogs)
     setSelectedItemIndex(-1)      
     setLogToEdit(null)
-
-    RNFS.unlink(path).then(() => {  // todo
-      console.log('FILE DELETED');
-    })
-    .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
-      console.log(err.message);
-    });
     writeToFile(newRunLogs);
   }
 
