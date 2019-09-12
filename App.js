@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import AddEditDialog from './AddEditDialog';
+import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
 
 const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -13,7 +13,9 @@ const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /*** Next 
   - timestamp and date redundant ??
-  - 
+  - Use react context 
+  - Too many renders
+  - Run log icon
 ***/
 
 let progCounter = 0;
@@ -24,11 +26,9 @@ const App = (gestureFromGR) => {
   console.log('----- Debug: App Start -------', ++progCounter)  
 
   //// ---
-  // const [gesture, setGesture] = useState(null);
-  gesture = gesture === 'reset' ? null : gestureFromGR.gesture;  
+  gesture = (gesture === 'reset') ? null : gestureFromGR.gesture;  
   // console.log('----- App: gestureFromGR.gesture: ', gestureFromGR.gesture)  
   // console.log('----- App: gestureFromGR.swipeId: ', gestureFromGR.swipeId)  
-
 
   //// --- File 
   var RNFS = require('react-native-fs');
@@ -59,13 +59,13 @@ const App = (gestureFromGR) => {
   function readFromFile() {
     RNFS.readFile(path, 'utf8')
       .then((content) => {  // content: string
-        console.log('--- App:: readFromFile() from ' + path)
+        console.log('--- App:: readFromFile(): from ' + path)
         // console.log('--- App:: FILE content: ' + content);    
         const parsed = JSON.parse(content); // parsed: array
         // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
         parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
         // return content;  // todo: how to use return from then()
-        console.log('--- App:: setRunlogs() in readFromFile()..');
+        console.log('--- App:: readFromFile(): will setRunlogs()');
         setRunLogs(parsed)
       })
       .catch((err) => {
@@ -316,7 +316,7 @@ const App = (gestureFromGR) => {
                                 Number(screenMonthAndYear.split('.')[1]);  
   const todayDate = now.getDate() + ' ' + monthNames[now.getMonth()].substring(0,3) + ', ' + 
                     days[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  getWeekOfYear(now) + ')';                                
-                    
+
   return (
     <View style={{flex: 1}}>
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
@@ -340,19 +340,19 @@ const App = (gestureFromGR) => {
       />
       <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: '#d9d9d9' }}>
         <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
-          <Image source={require('./left_arrow.png')} />
+          <Image source={require('./src/icons/left_arrow.png')} />
         </TouchableOpacity>     
         <TouchableOpacity style={styles.button} onPress={onNextButtonPress}>
-          <Image source={require('./right_arrow.png')} />
+          <Image source={require('./src/icons/right_arrow.png')} />
         </TouchableOpacity>          
         <TouchableOpacity style={styles.button} onPress={onDeleteButtonPress}>
-          <Image source={require('./delete.png')} />
+          <Image source={require('./src/icons/delete.png')} />
         </TouchableOpacity>    
         <TouchableOpacity style={styles.button} onPress={onEditButtonPress}>
-          <Image source={require('./edit.png')} />
+          <Image source={require('./src/icons/edit.png')} />
         </TouchableOpacity>                    
         <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
-          <Image source={require('./plus.png')} />
+          <Image source={require('./src/icons/plus.png')} />
         </TouchableOpacity> 
       </View>
       { showAddEditDialog ?

@@ -4,7 +4,7 @@ import {
   TouchableHighlight, FlatList, TouchableOpacity, Button
 } from 'react-native';
 import Modal from 'react-native-modal';
-import MyDatePicker from './src/MyDatePicker';
+import MyDatePicker from './MyDatePicker';
 
 // let xx = 0;
 const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
