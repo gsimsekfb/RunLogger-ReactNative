@@ -285,10 +285,10 @@ const App = (gestureFromGR) => {
   //// --- Create flatlist
   console.log("--- App:: create dataFlatList ---")
   const monthLogs = getMonthLogs( screenMonthAndYear );
+  const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
   let dataFlatList = []
   if(monthLogs && monthLogs.length > 0) {
     let week = getWeekOfYear(monthLogs[0].date)
-    const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
     dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), itemType: itemType.week })
     for (const [i, log] of monthLogs.entries()) {
       if(week !== getWeekOfYear(log.date)) 
@@ -330,8 +330,15 @@ const App = (gestureFromGR) => {
         renderItem={({ item, index }) => {
           // console.log('--- App: item: ', item);
           return (
-            <TouchableOpacity onPress={() => this.onItemPress(item, index)}>
-              <Text style={[styles[item.itemType], item.isSelected ? styles.selectedItem : '']}> {item.key} </Text>
+            <TouchableOpacity style={{flex:1, flexDirection: 'row'}} 
+                              onPress={() => this.onItemPress(item, index)}>
+              { 
+                (item.itemType === itemType.runData) && 
+                <Image source={require('./src/icons/running_man.png')} /> 
+              }
+              <Text style={[styles[item.itemType], item.isSelected ? styles.selectedItem : '']}> 
+                {item.key} 
+              </Text>
             </TouchableOpacity>
           )
         }
@@ -339,12 +346,6 @@ const App = (gestureFromGR) => {
         style={{ backgroundColor: '' }}
       />
       <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: '#d9d9d9' }}>
-        <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
-          <Image source={require('./src/icons/left_arrow.png')} />
-        </TouchableOpacity>     
-        <TouchableOpacity style={styles.button} onPress={onNextButtonPress}>
-          <Image source={require('./src/icons/right_arrow.png')} />
-        </TouchableOpacity>          
         <TouchableOpacity style={styles.button} onPress={onDeleteButtonPress}>
           <Image source={require('./src/icons/delete.png')} />
         </TouchableOpacity>    
@@ -354,6 +355,12 @@ const App = (gestureFromGR) => {
         <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
           <Image source={require('./src/icons/plus.png')} />
         </TouchableOpacity> 
+        <TouchableOpacity style={styles.button} onPress={onPrevButtonPress}>
+          <Image source={require('./src/icons/left_arrow.png')} />
+        </TouchableOpacity>     
+        <TouchableOpacity style={styles.button} onPress={onNextButtonPress}>
+          <Image source={require('./src/icons/right_arrow.png')} />
+        </TouchableOpacity>        
       </View>
       { showAddEditDialog ?
         <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} />
@@ -395,6 +402,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.lighter,
   },
   week: {    
+    flex: 1,
     padding: 10,
     fontSize: 16,
     height: 44,
@@ -407,6 +415,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#d9d9d9",
   },    
   runData: {    
+    flex: 1,
     padding: 10,
     fontSize: 14,
     height: 44,
