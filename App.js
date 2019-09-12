@@ -1,13 +1,11 @@
 import React, {Fragment, useState} from 'react';
 import {
-  Image, StyleSheet, ScrollView, View, Text, StatusBar, TextInput,
-  TouchableHighlight, FlatList, TouchableOpacity, Button, Modal
+  Image, StyleSheet, View, Text, FlatList, TouchableOpacity, 
 } from 'react-native';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import AddEditDialog from './AddEditDialog';
-import GR from './Appx';
-import { clone } from '@babel/types';
+import Modal from 'react-native-modal';
 
 const monthNames = ["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"];
@@ -85,7 +83,7 @@ const App = (gestureFromGR) => {
     // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
   }
 
-  //// runLogs comes empty from wake up from sleep
+  //// Todo: runLogs comes empty after wake up from sleep
   if(runLogs.length === 0 && progCounter > 1) {
     RNFS.readFile(path, 'utf8')
     .then((content) => {
@@ -192,9 +190,18 @@ const App = (gestureFromGR) => {
     setScreenMonthAndYear(prevMonthAndYear(screenMonthAndYear))    
   }
 
+  const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
+
   function onDeleteButtonPress() {
-    console.log(`Del button press`) 
+    console.log(`--- App: Del button press`) 
     if(selectedItemIndex === -1) return;
+    setShowConfirmDeleteDialog(true);
+  } 
+
+  function onConfirmDeleteDialog(deleteFile) {
+    // console.log(`--- App: deleteFile: ` + deleteFile);
+    setShowConfirmDeleteDialog(false);
+    if(!deleteFile) return;
     let newRunLogs = [...runLogs];
     newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
     setRunLogs(newRunLogs)
@@ -215,10 +222,6 @@ const App = (gestureFromGR) => {
     console.log(`Add button press`);   
     setLogToEdit(null)
     setShowAddEditDialog(true)
-    // console.log('--- aaa: ', dataFromAddEditDialog.date)
-    // setRunLogs([...runLogs, 
-    //             {date: new Date('Tue Jul 30 2019 17:11:34 GMT+0300 (+03)'), min: 30, distance: 25, notes: "" }
-    // ])   
   }  
 
   // Add or Edit from AddEditDialog
@@ -311,6 +314,7 @@ const App = (gestureFromGR) => {
 
   const screenMonthAndYearStr = '< ' + monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1]) + ' >';
+  
   return (
     <View style={{flex: 1}}>
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
@@ -344,10 +348,25 @@ const App = (gestureFromGR) => {
           <Image source={require('./plus.png')} />
         </TouchableOpacity> 
       </View>
-      {showAddEditDialog ?
+      { showAddEditDialog ?
         <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} />
         : null
       }
+      <Modal isVisible={showConfirmDeleteDialog}>      
+        <View style={styles.confirmDeleteDialog}>
+          <Text style={{fontSize: 18, margin: 0, textAlign: 'center'}}>  
+              Are you sure to delete this run log?
+          </Text>                                  
+          <View style={{ marginTop: 40, flexDirection: 'row-reverse', backgroundColor: '',}}>
+            <TouchableOpacity style={{marginLeft: 30}} onPress={() => onConfirmDeleteDialog(true)}>
+              <Text style={{fontSize: 18}}> Yes </Text>
+            </TouchableOpacity>                      
+            <TouchableOpacity onPress={() => onConfirmDeleteDialog(false)}>
+              <Text style={{fontSize: 18}}> No </Text>
+            </TouchableOpacity>     
+          </View>            
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -391,7 +410,14 @@ const styles = StyleSheet.create({
   },      
   button: {
     flex:1, alignItems:'center', justifyContent:'center', alignSelf:'stretch', margin:5
-  }
+  },
+  // Confirm Delete Dialog 
+  confirmDeleteDialog: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 4,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
 });
 
 export default App;
