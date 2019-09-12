@@ -312,12 +312,19 @@ const App = (gestureFromGR) => {
     dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
   }
 
-  const screenMonthAndYearStr = '< ' + monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
-                                Number(screenMonthAndYear.split('.')[1]) + ' >';
-  
+  const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
+                                Number(screenMonthAndYear.split('.')[1]);  
+  const todayDate = now.getDate() + ' ' + monthNames[now.getMonth()].substring(0,3) + ', ' + 
+                    days[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  getWeekOfYear(now) + ')';                                
+                    
   return (
     <View style={{flex: 1}}>
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
+      { (currentMonthAndYear === screenMonthAndYear) && 
+        <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2', padding: 2}}> 
+          {'Today: ' + todayDate} 
+         </Text> 
+      }
       <FlatList
         data={dataFlatList}
         renderItem={({ item, index }) => {
