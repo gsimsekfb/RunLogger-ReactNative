@@ -8,9 +8,9 @@ import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-
 import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
 
-const monthNames = ["January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"];
-const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"]);
+const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
   - timestamp and date redundant ??
@@ -23,22 +23,22 @@ let gesture = null;
 let lastSwipeId = 0;
 const App = (gestureFromGR) => {
   console.log('\n\n')
-  console.log('----- Debug: App Start -------', ++progCounter)  
+  console.log('----- Debug: App Start -------: ' + ++progCounter)  
 
   //// --- File 
-  const path = RNFS.DocumentDirectoryPath + '/test1';
+  const FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
 
   // Todo: Clear instead of delete (Update: Check later, no API to this currently)
   function writeToFile(newRunLogs) {
-    RNFS.unlink(path).then(() => {
+    RNFS.unlink(FILE_PATH).then(() => {
       console.log('FILE DELETED');
     })
     .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
       console.log(err.message);
     });        
-    RNFS.writeFile(path, JSON.stringify(newRunLogs), 'utf8')
+    RNFS.writeFile(FILE_PATH, JSON.stringify(newRunLogs), 'utf8')
       .then((success) => {
-        console.log('FILE written: ' + path);        
+        console.log('FILE written: ' + FILE_PATH);        
       })
       .catch((err) => {
         console.log(err.message);
@@ -46,9 +46,9 @@ const App = (gestureFromGR) => {
   }
 
   function readRunLogsFromFile() {
-    RNFS.readFile(path, 'utf8')
+    RNFS.readFile(FILE_PATH, 'utf8')
       .then((content) => {  // content: string
-        console.log('--- App:: readRunLogsFromFile(): from ' + path)
+        console.log('--- App:: readRunLogsFromFile(): from ' + FILE_PATH)
         // console.log('--- App:: FILE content: ' + content);    
         const parsed = JSON.parse(content); // parsed: array
         // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
@@ -72,9 +72,9 @@ const App = (gestureFromGR) => {
 
   //// Todo: runLogs comes empty after wake up from sleep
   if(runLogs.length === 0 && progCounter > 1) {
-    RNFS.readFile(path, 'utf8')
+    RNFS.readFile(FILE_PATH, 'utf8')
     .then((content) => {
-      console.log('--- App:: Sleep check: readFile() from ' + path);
+      console.log('--- App:: Sleep check: readFile() from ' + FILE_PATH);
       const parsed = JSON.parse(content);
       parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
       if(parsed.length) { // todo: problems here
@@ -136,7 +136,7 @@ const App = (gestureFromGR) => {
   const [monthLogIndex, setMonthLogIndex] = useState(-1);   // monthLog array index of selected UI item
   const [selectedItemIndex, setSelectedItemIndex] = useState(-1);   // UI row index
   onItemPress = (item, index) => {
-    if(item.itemType !== 'runData') return; 
+    if(item.type !== 'runData') return; 
     setSelectedItemIndex(index);  // UI
     setMonthLogIndex(item.monthLogIndex);
     setLogToEdit(monthLogs[item.monthLogIndex])
@@ -253,23 +253,23 @@ const App = (gestureFromGR) => {
   //// --- Create flatlist
   console.log("--- App:: create dataFlatList ---")
   const monthLogs = getMonthLogs( screenMonthAndYear );
-  const itemType = { week: "week", dayAndDate: "dayAndDate", runData: "runData" }  
+  const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
   let dataFlatList = []
   if(monthLogs && monthLogs.length > 0) {
     let week = getWeekOfYear(monthLogs[0].date)
-    dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), itemType: itemType.week })
+    dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), type: ITEM_TYPE.week })
     for (const [i, log] of monthLogs.entries()) {
       if(week !== getWeekOfYear(log.date)) 
-        dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), itemType: itemType.week })
+        dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), type: ITEM_TYPE.week })
 
-      const dateStr = log.date.getDate() + ' ' + monthNames[log.date.getMonth()].substring(0,3) + ', ' + 
-                      days[log.date.getDay()];
+      const dateStr = log.date.getDate() + ' ' + MONTH_NAMES[log.date.getMonth()].substring(0,3) + ', ' + 
+                      DAY_NAMES[log.date.getDay()];
       // Min, meter, notes
       const min = log.min === 0 ? '' : (log.min + ' min ');      
       const dis = log.distance === 0 ? '' : (', ' + log.distance + ' meters ');
       const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
       dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
-                          notes, itemType: itemType.runData })    
+                          notes, type: ITEM_TYPE.runData })    
       
       week = getWeekOfYear(log.date)
     }
@@ -279,10 +279,10 @@ const App = (gestureFromGR) => {
     dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
   }
 
-  const screenMonthAndYearStr = monthNames[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
+  const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1]);  
-  const todayDate = now.getDate() + ' ' + monthNames[now.getMonth()].substring(0,3) + ', ' + 
-                    days[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  getWeekOfYear(now) + ')';                                
+  const todayDate = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
+                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  getWeekOfYear(now) + ')';                                
 
   return (
     <View style={{flex: 1}}>
@@ -294,22 +294,20 @@ const App = (gestureFromGR) => {
       }
       <FlatList
         data={dataFlatList}
-        renderItem={({ item, index }) => {
-          // console.log('--- App: item: ', item);
+        renderItem={ ({ item, index }) => {
           return (
             <TouchableOpacity style={{flex:1, flexDirection: 'row'}} 
                               onPress={() => this.onItemPress(item, index)}>
               { 
-                (item.itemType === itemType.runData) && 
+                (item.type === ITEM_TYPE.runData) && 
                 <Image source={require('./src/icons/running_man.png')} /> 
               }
-              <Text style={[styles[item.itemType], item.isSelected ? styles.selectedItem : '']}> 
+              <Text style={[styles[item.type], item.isSelected ? styles.selectedItem : '']}> 
                 {item.key} 
               </Text>
             </TouchableOpacity>
           )
-        }
-        }
+        } }
         style={{ backgroundColor: '' }}
       />
       <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: '#d9d9d9' }}>
@@ -329,9 +327,10 @@ const App = (gestureFromGR) => {
           <Image source={require('./src/icons/right_arrow.png')} />
         </TouchableOpacity>        
       </View>
-      { showAddEditDialog ?
-        <AddEditDialog logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} />
-        : null
+      { showAddEditDialog &&
+        <AddEditDialog 
+          logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} 
+        />        
       }
       <Modal isVisible={showConfirmDeleteDialog}>      
         <View style={styles.confirmDeleteDialog}>
