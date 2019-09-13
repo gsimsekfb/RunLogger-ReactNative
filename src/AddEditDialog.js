@@ -1,33 +1,24 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
-  Image, StyleSheet, ScrollView, View, Text, StatusBar, TextInput,
-  TouchableHighlight, FlatList, TouchableOpacity, Button
+  StyleSheet, View, Text, TextInput, TouchableOpacity
 } from 'react-native';
 import Modal from 'react-native-modal';
 import MyDatePicker from './MyDatePicker';
 
-// let xx = 0;
 const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
-    // ++xx;
-    // console.log('--- AddEditDialog:: xx: ' + xx);
-    
+
     const [firstLoad, setFirstLoad] = useState(true);
     const inputRef = useRef(null);
     useEffect(                
       () => { 
         if(firstLoad) {            
-            inputRef.current.focus();   // todo: this func. does not trigger keyboard intermittently 
+            inputRef.current.focus();
             setFirstLoad(false);
         }
       }
     );    
 
-    // console.log('--- AddEditDialog:: logToEdit', logToEdit)
-
     const isAddDialog = (logToEdit === null)
-    // console.log('--- AddEditDialog:: isAddDialog', isAddDialog)
-  
-    // const [modalVisible, setModalVisible]= useState(true)
     const [min, setMin]= useState(isAddDialog ? '' : String(logToEdit.min))
     const [distance, setDistance]= useState(isAddDialog ? '' : String(logToEdit.distance))
     const [notes, setNotes]= useState(isAddDialog ? '' : logToEdit.notes)
@@ -35,7 +26,6 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
     const [dateFromDatePicker, setDateFromDatePicker] = useState(null);
   
     const _dataFromDatePicker = (data) => {    
-      // console.log('--- AddEditDialog::_dataFromDatePicker:: data: ', data)
       setDateFromDatePicker(data);
     }
 
@@ -47,60 +37,65 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
       sendData( {date: dateFromDatePicker, min: minFinal, distance: Number(distance), notes: notesFinal } )
       console.log('--- AddEditDialog::save() pressed')        
     }
+
+    function onDurationChange(text) {
+      if(text.endsWith(' ')) text = text.replace(' ', '+'); 
+      setMin(text);
+    }
   
     const MARGIN_BOTTOM = 10;
 
     return(
-        <Modal
-          style={styles.container}
-          isVisible={true}
-          onBackdropPress={() => hideAddEditDialog()}
-        >
-          <View style={styles.content}>
-            <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}>  
-                { (isAddDialog ? 'Add' : 'Edit') + ' Log' }
-            </Text>           
-            <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM }}>
-              <MyDatePicker initialDate={initialDate} sendData={_dataFromDatePicker}/>
-            </View>
-            <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
-              <TextInput
-                style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
-                onChangeText={ text => setDistance(text) }
-                keyboardType={'number-pad'}
-                value={distance}
-                placeholder='Distance'
-              />
-              <Text style={{fontSize: 16}}> meters </Text>            
-            </View>          
-            <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
-              <TextInput
-                style={{flex:1, height: 40, width: 80, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
-                onChangeText={ text => { if(text.endsWith(' ')) text = text.replace(' ', '+'); setMin(text);} }
-                value={min}
-                placeholder='Duration'
-                ref={inputRef}
-              />
-              <Text style={{fontSize: 16}}> minutes </Text>            
-            </View>            
-            <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM}}>
-              <TextInput
-                style={{flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1}}
-                onChangeText={ text => setNotes(text) }
-                value={notes}
-                placeholder='Notes'
-              />
-            </View>                 
-            <View style={{ padding: 2, flexDirection: 'row-reverse', backgroundColor: '',}}>
-              <TouchableOpacity style={styles.button} onPress={onSave}>
-                <Text style={{fontSize: 18}}> Save </Text>
-              </TouchableOpacity>                      
-              <TouchableOpacity style={styles.button} onPress={hideAddEditDialog}>
-                <Text style={{fontSize: 18}}> Cancel </Text>
-              </TouchableOpacity>     
-            </View>            
+      <Modal
+        style={styles.container}
+        isVisible={true}
+        onBackdropPress={() => hideAddEditDialog()}
+      >
+        <View style={styles.content}>
+          <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}>  
+              { (isAddDialog ? 'Add' : 'Edit') + ' Log' }
+          </Text>           
+          <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM }}>
+            <MyDatePicker initialDate={initialDate} sendData={_dataFromDatePicker}/>
           </View>
-        </Modal>
+          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={ text => setDistance(text) }
+              keyboardType={'number-pad'}
+              value={distance}
+              placeholder='Distance'
+            />
+            <Text style={{fontSize: 16}}> meters </Text>            
+          </View>          
+          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={ text => onDurationChange(text) }
+              value={min}
+              placeholder='Duration'
+              ref={inputRef}
+            />
+            <Text style={{fontSize: 16}}> minutes </Text>            
+          </View>            
+          <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM}}>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={ text => setNotes(text) }
+              value={notes}
+              placeholder='Notes'
+            />
+          </View>                 
+          <View style={{ padding: 2, flexDirection: 'row-reverse', backgroundColor: '',}}>
+            <TouchableOpacity style={styles.button} onPress={onSave}>
+              <Text style={{fontSize: 18}}> Save </Text>
+            </TouchableOpacity>                      
+            <TouchableOpacity style={styles.button} onPress={hideAddEditDialog}>
+              <Text style={{fontSize: 18}}> Cancel </Text>
+            </TouchableOpacity>     
+          </View>            
+        </View>
+      </Modal>
     )
   }
 
@@ -116,13 +111,9 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
       borderRadius: 4,
       borderColor: 'rgba(0, 0, 0, 0.1)',
     },
-    contentTitle: {
-      fontSize: 16,
-      marginBottom: 12,
-    },
-    button: {
-        // flex:1, alignItems:'center', justifyContent:'center', alignSelf:'stretch', margin:5
-      }    
+    textInput: {
+      flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1
+    }    
    });
 
   export default AddEditDialog;

@@ -2,8 +2,9 @@ import React, {Fragment, useState} from 'react';
 import {
   Image, StyleSheet, View, Text, FlatList, TouchableOpacity, 
 } from 'react-native';
-
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
+
 import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
 
@@ -13,9 +14,8 @@ const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /*** Next 
   - timestamp and date redundant ??
-  - Use react context 
   - Too many renders
-  - Run log icon
+  - Run log app icon
 ***/
 
 let progCounter = 0;
@@ -25,20 +25,11 @@ const App = (gestureFromGR) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------', ++progCounter)  
 
-  //// ---
-  gesture = (gesture === 'reset') ? null : gestureFromGR.gesture;  
-  // console.log('----- App: gestureFromGR.gesture: ', gestureFromGR.gesture)  
-  // console.log('----- App: gestureFromGR.swipeId: ', gestureFromGR.swipeId)  
-
   //// --- File 
-  var RNFS = require('react-native-fs');
-  // https://github.com/itinance/react-native-fs
-  // console.log('RNFS: ' + RNFS.DocumentDirectoryPath)
-  var path = RNFS.DocumentDirectoryPath + '/test1';
+  const path = RNFS.DocumentDirectoryPath + '/test1';
 
+  // Todo: Clear instead of delete (Update: Check later, no API to this currently)
   function writeToFile(newRunLogs) {
-    // console.log('aaa: ' + JSON.stringify(newRunLogs));    
-    // Todo: Clear instead of delete
     RNFS.unlink(path).then(() => {
       console.log('FILE DELETED');
     })
@@ -48,49 +39,45 @@ const App = (gestureFromGR) => {
     RNFS.writeFile(path, JSON.stringify(newRunLogs), 'utf8')
       .then((success) => {
         console.log('FILE written: ' + path);        
-        // console.log('Content: ' + newRunLogs.length);        
-        // console.log('--- www: ' + runLogs[0].date);        
       })
       .catch((err) => {
         console.log(err.message);
       });
   }
 
-  function readFromFile() {
+  function readRunLogsFromFile() {
     RNFS.readFile(path, 'utf8')
       .then((content) => {  // content: string
-        console.log('--- App:: readFromFile(): from ' + path)
+        console.log('--- App:: readRunLogsFromFile(): from ' + path)
         // console.log('--- App:: FILE content: ' + content);    
         const parsed = JSON.parse(content); // parsed: array
         // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
         parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
-        // return content;  // todo: how to use return from then()
-        console.log('--- App:: readFromFile(): will setRunlogs()');
+        console.log('--- App:: readRunLogsFromFile(): will setRunlogs()');
         setRunLogs(parsed)
       })
       .catch((err) => {
         console.log(err.message);
-      });    
+      });   
   }
-
-  ////
-  const [runLogs, setRunLogs] = useState([]);
 
   //// First app start
   if(progCounter === 1) {
     console.log('--- App:: Reading RunLogs from file..')
-    readFromFile();
-    // console.log('--- readFromFile: ' + readFromFile());   // Load Run Logs from file    
+    readRunLogsFromFile();
   }
+  
+  ////
+  const [runLogs, setRunLogs] = useState([]);
 
   //// Todo: runLogs comes empty after wake up from sleep
   if(runLogs.length === 0 && progCounter > 1) {
     RNFS.readFile(path, 'utf8')
     .then((content) => {
-      console.log('--- App:: readFile() from ' + path);
+      console.log('--- App:: Sleep check: readFile() from ' + path);
       const parsed = JSON.parse(content);
       parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
-      if(parsed.length) { // next: problems here
+      if(parsed.length) { // todo: problems here
         console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
         console.log('--- App:: setRunlogs()');
         setRunLogs(parsed);
@@ -111,18 +98,12 @@ const App = (gestureFromGR) => {
   const _hideAddEditDialog = () => {
     setShowAddEditDialog(false)
   }
+
   const [dataFromAddEditDialog, setDataFromAddEditDialog] = useState('')
-  const _dataFromAddEditDialog = (data) => {  // AddEditDialog on Save button
+  // AddEditDialog on Save button
+  const _dataFromAddEditDialog = (data) => {  
     setShowAddEditDialog(false)
     setDataFromAddEditDialog(data)
-    // console.log('--- App::_dataFromAddEditDialog:: dataFromAddEditDialog: ', dataFromAddEditDialog)
-    // console.log('--- App::_dataFromAddEditDialog:: logToEdit: ', logToEdit)
-  }
-  //console.log('--- App:: dataFromAddEditDialog: ', dataFromAddEditDialog)
-
-  function getData(val){
-    // do not forget to bind getData in constructor
-    console.log(val);
   }
 
   function getWeekOfYear(date) {
@@ -132,8 +113,7 @@ const App = (gestureFromGR) => {
 
   // returns: '7.2019'
   function getMonthAndYear(date) {
-    // console.log('--- ddd: ' + date);
-    return (date.getMonth()+1 + '.' + date.getFullYear())
+    return (date.getMonth() + 1 + '.' + date.getFullYear())
   }
 
   function nextMonthAndYear(monthAndYear) {
@@ -156,8 +136,6 @@ const App = (gestureFromGR) => {
   const [monthLogIndex, setMonthLogIndex] = useState(-1);   // monthLog array index of selected UI item
   const [selectedItemIndex, setSelectedItemIndex] = useState(-1);   // UI row index
   onItemPress = (item, index) => {
-    console.log('--- App:: onItemPress(): item.monthLogIndex ' + item.monthLogIndex);
-    console.log('--- App:: onItemPress(): index ' + index);
     if(item.itemType !== 'runData') return; 
     setSelectedItemIndex(index);  // UI
     setMonthLogIndex(item.monthLogIndex);
@@ -165,7 +143,7 @@ const App = (gestureFromGR) => {
   }
 
   //// --- Gesture 
-  // console.log('--- App:: gesture: ' + JSON.stringify(gesture));
+  gesture = (gesture === 'reset') ? null : gestureFromGR.gesture;    
   if(gesture === 'SWIPE_LEFT' && lastSwipeId !== gestureFromGR.swipeId) { 
     gesture = 'reset';
     lastSwipeId = gestureFromGR.swipeId;
@@ -227,11 +205,8 @@ const App = (gestureFromGR) => {
   // Add or Edit from AddEditDialog
   if(dataFromAddEditDialog !== '') {
     let dateFromDatePicker = dataFromAddEditDialog.date;    
-    // console.log('dataFromAddEditDialog: ' + JSON.stringify(dataFromAddEditDialog, null, 4) )
     // Note: The date from MyDatePicker comes as string if it comes from 
-    // MyDatePicker::onDateChange() function
     if(dateFromDatePicker && !(dateFromDatePicker instanceof Date)) { 
-      // console.log('dateFromDatePicker: ' + dateFromDatePicker)
       const d = dateFromDatePicker.split('-')[0]
       const m = dateFromDatePicker.split('-')[1]
       const y = dateFromDatePicker.split('-')[2].split(' ')[0]
@@ -240,18 +215,14 @@ const App = (gestureFromGR) => {
       const mm = time.split(':')[1]
       dateFromDatePicker = new Date(y,m-1,d,hh,mm);
     }
-    // console.log('--- App:: tt1: ', typeof(dateFromDatePicker));          
-    // console.log('--- App:: tt2: ', (dateFromDatePicker instanceof Date));          
+       
     const newLog = { // next: Get Date() object from DatePicker      
       timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
       date: dateFromDatePicker, min: dataFromAddEditDialog.min, 
       distance: dataFromAddEditDialog.distance, notes: dataFromAddEditDialog.notes 
     }
     if(logToEdit !== null) { // Edit (delete and re-create) existing log
-      console.log('--- App:: Editing existing log ...')      
-      console.log('--- App:: logToEdit', logToEdit)      
-      // console.log('--- App:: dataFromAddEditDialog', dataFromAddEditDialog)      
-      console.log('--- App:: newLog', newLog)      
+      console.log('--- App:: Editing existing log ...')        
       let newRunLogs = [...runLogs];
       newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
       newRunLogs = [...newRunLogs, newLog].sort((a,b) => a.timestamp - b.timestamp)
@@ -263,9 +234,7 @@ const App = (gestureFromGR) => {
     else {  // Add new log 
       const newRunLogs = [...runLogs, newLog].sort((a,b) => a.timestamp - b.timestamp);
       setRunLogs(newRunLogs)
-      console.log('--- App:: Adding new log...')
-      console.log('--- App:: newLog', newLog)      
-      console.log('--- App:: Saving into file...')            
+      console.log('--- App:: Adding new log...')          
       writeToFile(newRunLogs);
     }
     setDataFromAddEditDialog('')        
@@ -273,7 +242,6 @@ const App = (gestureFromGR) => {
 
   function getMonthLogs(monthAndYear /* e.g. 7.2019 */) { 
     let monthLogs = []
-    console.log('--- App:: getMonthLogs(): monthAndYear: ', monthAndYear);       
     for (const log of runLogs) {  
       if (monthAndYear === getMonthAndYear(log.date)) {
         monthLogs.push(log);
@@ -304,7 +272,6 @@ const App = (gestureFromGR) => {
                           notes, itemType: itemType.runData })    
       
       week = getWeekOfYear(log.date)
-      // console.log('i', i)  // todo: remove i
     }
     // console.log("--- App:: dataFlatList: ", dataFlatList);
 
