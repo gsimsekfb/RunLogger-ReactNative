@@ -13,8 +13,6 @@ const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
-  - timestamp and date redundant ??
-  - Too many renders
   - Run log app icon
 ***/
 
@@ -70,7 +68,8 @@ const App = (gestureFromGR) => {
   ////
   const [runLogs, setRunLogs] = useState([]);
 
-  //// Todo: runLogs comes empty after wake up from sleep
+  //// Todo: Code duplication here
+  //// runLogs comes empty after wake up from sleep
   if(runLogs.length === 0 && progCounter > 1) {
     RNFS.readFile(FILE_PATH, 'utf8')
     .then((content) => {
@@ -99,11 +98,43 @@ const App = (gestureFromGR) => {
     setShowAddEditDialog(false)
   }
 
-  const [dataFromAddEditDialog, setDataFromAddEditDialog] = useState('')
-  // AddEditDialog on Save button
+  // AddEditDialog save button pressed
   const _dataFromAddEditDialog = (data) => {  
     setShowAddEditDialog(false)
-    setDataFromAddEditDialog(data)
+
+    let dateFromDatePicker = data.date;    
+    // Note: The date from MyDatePicker comes as string if it comes from 
+    if(dateFromDatePicker && !(dateFromDatePicker instanceof Date)) { 
+      const d = dateFromDatePicker.split('-')[0]
+      const m = dateFromDatePicker.split('-')[1]
+      const y = dateFromDatePicker.split('-')[2].split(' ')[0]
+      const time = dateFromDatePicker.split(' ')[1]
+      const hh = time.split(':')[0]
+      const mm = time.split(':')[1]
+      dateFromDatePicker = new Date(y,m-1,d,hh,mm);
+    }
+       
+    const newLog = { // next: Get Date() object from DatePicker      
+      timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
+      date: dateFromDatePicker, min: data.min, 
+      distance: data.distance, notes: data.notes 
+    }
+    if(logToEdit !== null) { // Edit (delete and re-create) existing log
+      console.log('--- App:: Editing existing log ...')        
+      let newRunLogs = [...runLogs];
+      newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
+      newRunLogs = [...newRunLogs, newLog].sort((a,b) => a.timestamp - b.timestamp)
+      writeToFile(newRunLogs);
+      setRunLogs(newRunLogs)
+      setSelectedItemIndex(-1)      
+      setLogToEdit(null)      
+    }
+    else {  // Add new log 
+      const newRunLogs = [...runLogs, newLog].sort((a,b) => a.timestamp - b.timestamp);
+      setRunLogs(newRunLogs)
+      console.log('--- App:: Adding new log...')          
+      writeToFile(newRunLogs);
+    }
   }
 
   function weekOfYear(date) {
@@ -201,44 +232,6 @@ const App = (gestureFromGR) => {
     setLogToEdit(null)
     setShowAddEditDialog(true)
   }  
-
-  // Add or Edit from AddEditDialog
-  if(dataFromAddEditDialog !== '') {
-    let dateFromDatePicker = dataFromAddEditDialog.date;    
-    // Note: The date from MyDatePicker comes as string if it comes from 
-    if(dateFromDatePicker && !(dateFromDatePicker instanceof Date)) { 
-      const d = dateFromDatePicker.split('-')[0]
-      const m = dateFromDatePicker.split('-')[1]
-      const y = dateFromDatePicker.split('-')[2].split(' ')[0]
-      const time = dateFromDatePicker.split(' ')[1]
-      const hh = time.split(':')[0]
-      const mm = time.split(':')[1]
-      dateFromDatePicker = new Date(y,m-1,d,hh,mm);
-    }
-       
-    const newLog = { // next: Get Date() object from DatePicker      
-      timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
-      date: dateFromDatePicker, min: dataFromAddEditDialog.min, 
-      distance: dataFromAddEditDialog.distance, notes: dataFromAddEditDialog.notes 
-    }
-    if(logToEdit !== null) { // Edit (delete and re-create) existing log
-      console.log('--- App:: Editing existing log ...')        
-      let newRunLogs = [...runLogs];
-      newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
-      newRunLogs = [...newRunLogs, newLog].sort((a,b) => a.timestamp - b.timestamp)
-      writeToFile(newRunLogs);
-      setRunLogs(newRunLogs)
-      setSelectedItemIndex(-1)      
-      setLogToEdit(null)      
-    }
-    else {  // Add new log 
-      const newRunLogs = [...runLogs, newLog].sort((a,b) => a.timestamp - b.timestamp);
-      setRunLogs(newRunLogs)
-      console.log('--- App:: Adding new log...')          
-      writeToFile(newRunLogs);
-    }
-    setDataFromAddEditDialog('')        
-  }
 
   function getMonthLogs(monthAndYear /* e.g. 7.2019 */) { 
     let monthLogs = []
