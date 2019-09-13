@@ -106,7 +106,7 @@ const App = (gestureFromGR) => {
     setDataFromAddEditDialog(data)
   }
 
-  function getWeekOfYear(date) {
+  function weekOfYear(date) {
     const onejan = new Date(date.getFullYear(), 0, 1);
     return( Math.ceil( (((date - onejan) / 86400000) + onejan.getDay() + 1) / 7 ) );
   }
@@ -256,11 +256,11 @@ const App = (gestureFromGR) => {
   const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
   let dataFlatList = []
   if(monthLogs && monthLogs.length > 0) {
-    let week = getWeekOfYear(monthLogs[0].date)
-    dataFlatList.push({ key: 'Week ' + getWeekOfYear(monthLogs[0].date), type: ITEM_TYPE.week })
+    let week = weekOfYear(monthLogs[0].date)
+    dataFlatList.push({ key: 'Week ' + weekOfYear(monthLogs[0].date), type: ITEM_TYPE.week })
     for (const [i, log] of monthLogs.entries()) {
-      if(week !== getWeekOfYear(log.date)) 
-        dataFlatList.push({ key: 'Week ' +  getWeekOfYear(log.date), type: ITEM_TYPE.week })
+      if(week !== weekOfYear(log.date)) 
+        dataFlatList.push({ key: 'Week ' +  weekOfYear(log.date), type: ITEM_TYPE.week })
 
       const dateStr = log.date.getDate() + ' ' + MONTH_NAMES[log.date.getMonth()].substring(0,3) + ', ' + 
                       DAY_NAMES[log.date.getDay()];
@@ -271,7 +271,7 @@ const App = (gestureFromGR) => {
       dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
                           notes, type: ITEM_TYPE.runData })    
       
-      week = getWeekOfYear(log.date)
+      week = weekOfYear(log.date)
     }
     // console.log("--- App:: dataFlatList: ", dataFlatList);
 
@@ -282,7 +282,7 @@ const App = (gestureFromGR) => {
   const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1]);  
   const todayDate = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
-                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  getWeekOfYear(now) + ')';                                
+                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';                                
 
   return (
     <View style={{flex: 1}}>
