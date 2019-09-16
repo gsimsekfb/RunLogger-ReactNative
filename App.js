@@ -1,10 +1,11 @@
 import React, {Fragment, useState} from 'react';
 import {
-  Image, StyleSheet, View, Text, FlatList, TouchableOpacity, 
+  Image, StyleSheet, View, Text, FlatList, TouchableOpacity
 } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
+import DeviceInfo from 'react-native-device-info'
 
 import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
@@ -14,6 +15,7 @@ const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
+  - Async ops
   - RN disable warning runtime
   - Enable log runtime release build 
   - Choose run log file
@@ -25,6 +27,16 @@ let lastSwipeId = 0;
 const App = (gestureFromGR) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)  
+
+  //// Logging
+  // console.disableYellowBox = true;
+  // // a) Async
+  // DeviceInfo.isEmulator().then(isEmulator => {    
+  //   console.disableYellowBox = isEmulator ? false : true;
+  // });
+  // b) Sync
+  if(progCounter === 1)
+    console.disableYellowBox = DeviceInfo.isEmulatorSync() ? false : true;
 
   //// --- File 
   const FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
