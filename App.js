@@ -16,7 +16,6 @@ const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
 
 /*** Next 
   - Async ops
-  - RN disable warning runtime
   - Enable log runtime release build 
   - Choose run log file
 ***/
@@ -322,11 +321,13 @@ const App = (gestureFromGR) => {
         renderItem={ ({ item, index }) => {
           return (
             <View style={{flex:1, flexDirection: 'row'}}>
-              <TouchableOpacity style={{flex:1, flexDirection: 'row'}} 
-                                onPress={() => onItemPress(item, index)}>
+              <TouchableOpacity 
+                style={{flex:1, flexDirection: 'row', alignItems: 'center', 
+                        backgroundColor: item.isSelected ? styles.selectedItem.backgroundColor : 'white' }} 
+                onPress={() => onItemPress(item, index)}>
                 { 
                   (item.type === ITEM_TYPE.runData) && 
-                  <Image source={require('./src/icons/running_man.png')} /> 
+                  <Image source={require('./src/icons/running.png')} style={{marginLeft: 6}}/> 
                 }
                 <Text style={[styles[item.type], item.isSelected ? styles.selectedItem : '']}> 
                   {item.key} 
@@ -339,7 +340,7 @@ const App = (gestureFromGR) => {
                   ref={setMenuRef}
                   button={
                     <TouchableOpacity onPress={showMenu}>
-                      <Image source={require('./src/icons/three_dots.png')} style={{justifyContent: 'center'}}/>
+                      <Image source={require('./src/icons/three_dots_2.png')} style={{justifyContent: 'center'}}/>
                     </TouchableOpacity>
                   }
                 >
