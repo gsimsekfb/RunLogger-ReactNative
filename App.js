@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 
 import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
@@ -13,7 +14,9 @@ const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
-  - Run log app icon
+  - RN disable warning runtime
+  - Enable log runtime release build 
+  - Choose run log file
 ***/
 
 let progCounter = 0;
@@ -277,6 +280,23 @@ const App = (gestureFromGR) => {
   const todayDate = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
                     DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';                                
 
+  //// Three dots menu
+  let _menu = null;
+
+  setMenuRef = ref => _menu = ref;
+  showMenu = () => _menu.show();
+
+  onEditMenuPress = () => {
+    _menu.hide();
+    onEditButtonPress();
+  };
+
+  onDeleteMenuPress = () => {
+    _menu.hide();
+    onDeleteButtonPress();
+  };  
+
+
   return (
     <View style={{flex: 1}}>
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
@@ -289,16 +309,35 @@ const App = (gestureFromGR) => {
         data={dataFlatList}
         renderItem={ ({ item, index }) => {
           return (
-            <TouchableOpacity style={{flex:1, flexDirection: 'row'}} 
-                              onPress={() => this.onItemPress(item, index)}>
-              { 
-                (item.type === ITEM_TYPE.runData) && 
-                <Image source={require('./src/icons/running_man.png')} /> 
+            <View style={{flex:1, flexDirection: 'row'}}>
+              <TouchableOpacity style={{flex:1, flexDirection: 'row'}} 
+                                onPress={() => onItemPress(item, index)}>
+                { 
+                  (item.type === ITEM_TYPE.runData) && 
+                  <Image source={require('./src/icons/running_man.png')} /> 
+                }
+                <Text style={[styles[item.type], item.isSelected ? styles.selectedItem : '']}> 
+                  {item.key} 
+                </Text>
+              </TouchableOpacity>
+              {
+              (item.type === ITEM_TYPE.runData &&  item.isSelected) && 
+              <View style={{width: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ccebff'}}>
+                <Menu
+                  ref={setMenuRef}
+                  button={
+                    <TouchableOpacity onPress={showMenu}>
+                      <Image source={require('./src/icons/three_dots.png')} style={{justifyContent: 'center'}}/>
+                    </TouchableOpacity>
+                  }
+                >
+                  <MenuItem onPress={onEditMenuPress}> Edit </MenuItem>
+                  <MenuDivider/>
+                  <MenuItem onPress={onDeleteMenuPress}> Delete </MenuItem>
+                </Menu>     
+              </View>   
               }
-              <Text style={[styles[item.type], item.isSelected ? styles.selectedItem : '']}> 
-                {item.key} 
-              </Text>
-            </TouchableOpacity>
+            </View>           
           )
         } }
         style={{ backgroundColor: '' }}

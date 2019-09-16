@@ -87,10 +87,10 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             />
           </View>                 
           <View style={{ padding: 2, flexDirection: 'row-reverse', backgroundColor: '',}}>
-            <TouchableOpacity style={styles.button} onPress={onSave}>
+            <TouchableOpacity style={{marginLeft: 14}} onPress={onSave}>
               <Text style={{fontSize: 18}}> Save </Text>
             </TouchableOpacity>                      
-            <TouchableOpacity style={styles.button} onPress={hideAddEditDialog}>
+            <TouchableOpacity onPress={hideAddEditDialog}>
               <Text style={{fontSize: 18}}> Cancel </Text>
             </TouchableOpacity>     
           </View>            
