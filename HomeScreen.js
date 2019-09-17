@@ -16,8 +16,6 @@ const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
-  - Swipe improve
-  - Double tab edit menu
   - Async ops
   - Enable log runtime release build 
   - Choose run log file
@@ -29,6 +27,8 @@ let lastItemPress = 0;
 const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
+
+  onSettingsButtonPress();
 
   //// Logging
   // console.disableYellowBox = true;
@@ -205,7 +205,7 @@ const App = ({navigation}) => {
   function onItemPressLong(item, index) {
     if(item.type !== 'runData' || selectedItemIndex !== index) 
       return; 
-      
+
     showThreeDotMenu();
   }
 
@@ -231,8 +231,8 @@ const App = ({navigation}) => {
   } 
 
   function onSettingsButtonPress() {
-    console.log(`--- App: Settings button press`)     
-    navigation.navigate('Settings', {name: 'Jane'});    
+    // console.log(`--- App: Settings button press`)     
+    navigation.navigate('Settings', {name: 'Settings'});    
   } 
 
   function onConfirmDeleteDialog(deleteFile) {
@@ -387,12 +387,6 @@ const App = ({navigation}) => {
         <TouchableOpacity style={styles.button} onPress={onSettingsButtonPress}>
           <Image source={require('./src/icons/settings.png')} />
         </TouchableOpacity>          
-        <TouchableOpacity style={styles.button} onPress={onDeleteButtonPress}>
-          <Image source={require('./src/icons/delete.png')} />
-        </TouchableOpacity>    
-        <TouchableOpacity style={styles.button} onPress={onEditButtonPress}>
-          <Image source={require('./src/icons/edit.png')} />
-        </TouchableOpacity>                    
         <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
           <Image source={require('./src/icons/plus.png')} />
         </TouchableOpacity> 
@@ -426,6 +420,10 @@ const App = ({navigation}) => {
     </GestureRecognizer>
   );
 };
+
+App.navigationOptions = {
+  header: null
+}
 
 const styles = StyleSheet.create({
   header: {
