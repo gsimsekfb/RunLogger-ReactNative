@@ -191,16 +191,22 @@ const App = ({navigation}) => {
     const time = new Date().getTime();
     const delta = time - lastItemPress;
     const DOUBLE_PRESS_DELAY = 400;
-    if (delta < DOUBLE_PRESS_DELAY) { // Success double press
+    if (delta < DOUBLE_PRESS_DELAY) // Success double press
       showThreeDotMenu();
-      // console.log(`double tap`);      
-    }
+    
     lastItemPress = time;
     
     //
     setSelectedItemIndex(index);  // UI
     setMonthLogIndex(item.monthLogIndex);
     setLogToEdit(monthLogs[item.monthLogIndex])
+  }
+
+  function onItemPressLong(item, index) {
+    if(item.type !== 'runData' || selectedItemIndex !== index) 
+      return; 
+      
+    showThreeDotMenu();
   }
 
   //// --- Buttons
@@ -344,7 +350,9 @@ const App = ({navigation}) => {
               <TouchableOpacity 
                 style={{flex:1, flexDirection: 'row', alignItems: 'center', 
                         backgroundColor: item.isSelected ? styles.selectedItem.backgroundColor : 'white' }} 
-                onPress={() => onItemPress(item, index)}>
+                onPress={() => onItemPress(item, index)}  
+                onLongPress={() => onItemPressLong(item, index)}
+              >
                 { 
                   (item.type === ITEM_TYPE.runData) && 
                   <Image source={require('./src/icons/running.png')} style={{marginLeft: 6}}/> 
