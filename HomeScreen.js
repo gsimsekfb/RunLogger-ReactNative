@@ -17,12 +17,14 @@ const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
 
 /*** Next 
   - Swipe improve
+  - Double tab edit menu
   - Async ops
   - Enable log runtime release build 
   - Choose run log file
 ***/
 
 let progCounter = 0;
+let lastItemPress = 0;
 
 const App = ({navigation}) => {
   console.log('\n\n')
@@ -181,8 +183,21 @@ const App = ({navigation}) => {
   //// --- Item Press
   const [monthLogIndex, setMonthLogIndex] = useState(-1);   // monthLog array index of selected UI item
   const [selectedItemIndex, setSelectedItemIndex] = useState(-1);   // UI row index
+  
   onItemPress = (item, index) => {
     if(item.type !== 'runData') return; 
+
+    // Double tap
+    const time = new Date().getTime();
+    const delta = time - lastItemPress;
+    const DOUBLE_PRESS_DELAY = 400;
+    if (delta < DOUBLE_PRESS_DELAY) { // Success double press
+      showThreeDotMenu();
+      // console.log(`double tap`);      
+    }
+    lastItemPress = time;
+    
+    //
     setSelectedItemIndex(index);  // UI
     setMonthLogIndex(item.monthLogIndex);
     setLogToEdit(monthLogs[item.monthLogIndex])
@@ -285,18 +300,18 @@ const App = ({navigation}) => {
                     DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';                                
 
   //// Three dots menu
-  let _menu = null;
+  let _menuThreeDot = null;
 
-  setMenuRef = ref => _menu = ref;
-  showMenu = () => _menu.show();
+  setMenuRef = ref => _menuThreeDot = ref;
+  showThreeDotMenu = () => _menuThreeDot.show();
 
   onEditMenuPress = () => {
-    _menu.hide();
+    _menuThreeDot.hide();
     onEditButtonPress();
   };
 
   onDeleteMenuPress = () => {
-    _menu.hide();
+    _menuThreeDot.hide();
     onDeleteButtonPress();
   };  
 
@@ -344,7 +359,7 @@ const App = ({navigation}) => {
                 <Menu
                   ref={setMenuRef}
                   button={
-                    <TouchableOpacity onPress={showMenu}>
+                    <TouchableOpacity onPress={showThreeDotMenu}>
                       <Image source={require('./src/icons/three_dots_2.png')} style={{justifyContent: 'center'}}/>
                     </TouchableOpacity>
                   }
