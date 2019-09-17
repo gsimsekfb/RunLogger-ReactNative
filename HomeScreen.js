@@ -302,8 +302,8 @@ const App = ({navigation}) => {
 
   //// GestureRecognizer
   const GR_CONFIG = {
-    velocityThreshold: 0.3,
-    directionalOffsetThreshold: 80
+    velocityThreshold: 0.1,
+    directionalOffsetThreshold: 40
   };
 
   function onSwipe(gestureName, gestureState) {        
