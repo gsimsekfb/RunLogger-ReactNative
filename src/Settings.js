@@ -14,13 +14,15 @@ const Settings = ({navigation}) => {
   console.log('--- Settings:: programCounter: ' + programCounter);
 
   const [loggingEnabled, setLoggingEnabled] = useState(false);
+  const [fileToSaveRunLogs, setFileToSaveRunLogs] = useState(null);
 
   const MARGIN_BOTTOM = 20;
   const HAIRLINE_WIDTH = StyleSheet.hairlineWidth
+  const SETTING_KEYS = { loggingEnabled: '@loggingEnabled', fileToSaveRunLogs: '@fileToSaveRunLogs' };
 
-  saveSettings = async (loggingEnabled) => {
+  saveSetting = async (key, value) => {
     try {
-      await AsyncStorage.setItem('@loggingEnabled', loggingEnabled.toString())
+      await AsyncStorage.setItem(key, value);
     } catch (err) {
         console.log('Saving error, err: ' + err);
     }
@@ -28,9 +30,21 @@ const Settings = ({navigation}) => {
 
   fetchSettings = async () => {
     try {
-      const _loggingEnabled = await AsyncStorage.getItem('@loggingEnabled') === 'true';
-      if(_loggingEnabled !== loggingEnabled)
+      const _loggingEnabled = await AsyncStorage.getItem(SETTING_KEYS.loggingEnabled) === 'true';
+      const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
+      // console.log('loggingEnabled: ' + loggingEnabled);
+      // console.log('_loggingEnabled: ' + _loggingEnabled);
+      // console.log('fileToSaveRunLogs: ' + fileToSaveRunLogs);
+      // console.log('_fileToSaveRunLogs: ' + _fileToSaveRunLogs);
+
+      if(_loggingEnabled !== loggingEnabled) {
+        // console.log('qqqqq');
         setLoggingEnabled(_loggingEnabled);
+      }
+      if(_fileToSaveRunLogs !== fileToSaveRunLogs) {
+        // console.log('wwwww');
+        setFileToSaveRunLogs(_fileToSaveRunLogs);
+      }
     } catch (err) {
       console.log('Error reading value, err: ' + err);
     }
@@ -38,16 +52,17 @@ const Settings = ({navigation}) => {
 
   function onEnableLoggingPress() {
     setLoggingEnabled(!loggingEnabled);
-    saveSettings(!loggingEnabled);
+    saveSetting(SETTING_KEYS.loggingEnabled, (!loggingEnabled).toString());
   }
 
-  function onChooseFilePress() {
-    // fetchSettings();
+  function onChooseFilePress() {    
     RNFileSelector.Show(
       {
         title: 'Select File',
         onDone: (path) => {
             console.log('file selected: ' + path)
+            setFileToSaveRunLogs(path);
+            saveSetting(SETTING_KEYS.fileToSaveRunLogs, path);
         },
         onCancel: () => {
             console.log('cancelled')
@@ -67,7 +82,7 @@ const Settings = ({navigation}) => {
         <TextInput
           style={styles.textInput}
           onChangeText={ text => setDistance(text) }            
-          value={''}
+          value={fileToSaveRunLogs}
           placeholder='e.g. /data/tmp'
         />
         <TouchableOpacity style={styles.button} onPress={onChooseFilePress}>

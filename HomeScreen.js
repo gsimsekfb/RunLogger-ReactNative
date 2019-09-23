@@ -18,6 +18,7 @@ const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
 /*** Next 
   - Global vars
   - google, fb login
+  - Settings too many renders
   - Async ops
   - Enable log runtime release build 
   - Choose run log file
