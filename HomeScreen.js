@@ -16,6 +16,8 @@ const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
 /*** Next 
+  - Global vars
+  - google, fb login
   - Async ops
   - Enable log runtime release build 
   - Choose run log file
@@ -28,7 +30,7 @@ const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
 
-  onSettingsButtonPress();
+  // onSettingsButtonPress();
 
   //// Logging
   // console.disableYellowBox = true;
