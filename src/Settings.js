@@ -4,6 +4,7 @@ import {
   StyleSheet, View, Text, TextInput, Image, TouchableOpacity
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
+import RNFileSelector from 'react-native-file-selector';
 
 let programCounter = 0
 
@@ -42,6 +43,17 @@ const Settings = ({navigation}) => {
 
   function onChooseFilePress() {
     // fetchSettings();
+    RNFileSelector.Show(
+      {
+        title: 'Select File',
+        onDone: (path) => {
+            console.log('file selected: ' + path)
+        },
+        onCancel: () => {
+            console.log('cancelled')
+        }
+      }
+    );
   }
 
   fetchSettings();
@@ -49,7 +61,7 @@ const Settings = ({navigation}) => {
   return (
     <View style={styles.content}>
       <Text style={{fontSize: 16, marginBottom: 10}}>  
-          Choose database file path
+          Choose file to save run logs
       </Text>           
       <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
         <TextInput

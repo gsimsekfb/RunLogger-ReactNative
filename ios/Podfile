@@ -31,6 +31,8 @@ target 'RunLogger' do
 
   pod 'RNFS', :path => '../node_modules/react-native-fs'
 
+  pod 'RNFileSelector', :path => '../node_modules/react-native-file-selector'
+
   target 'RunLoggerTests' do
     inherit! :search_paths
     # Pods for testing
