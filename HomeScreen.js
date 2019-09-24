@@ -45,6 +45,7 @@ const App = ({navigation}) => {
 
   //// --- File 
   const FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
+      // FILE_PATH: /data/user/0/com.runlogger/files/test1
 
   // Todo: Clear instead of delete (Update: Check later, no API to this currently)
   function writeToFile(newRunLogs) {

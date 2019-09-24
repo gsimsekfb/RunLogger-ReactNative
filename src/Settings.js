@@ -5,31 +5,27 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFileSelector from 'react-native-file-selector';
+import { NavigationEvents } from 'react-navigation';
 
-let programCounter = 0
+export const SETTING_KEYS = { loggingEnabled: '@loggingEnabled', fileToSaveRunLogs: '@fileToSaveRunLogs' };
+
+let programCounter = 0;
 
 const Settings = ({navigation}) => {
 
   ++programCounter;
-  console.log('--- Settings:: programCounter: ' + programCounter);
+  console.log('\n' + '--- Settings:: mounting: programCounter: ' + programCounter);
 
   const [loggingEnabled, setLoggingEnabled] = useState(false);
   const [fileToSaveRunLogs, setFileToSaveRunLogs] = useState(null);
 
   const MARGIN_BOTTOM = 20;
   const HAIRLINE_WIDTH = StyleSheet.hairlineWidth
-  const SETTING_KEYS = { loggingEnabled: '@loggingEnabled', fileToSaveRunLogs: '@fileToSaveRunLogs' };
 
-  saveSetting = async (key, value) => {
+  // todo: multi renders triggered, probably async is the cause
+  const fetchSettings = async () => {
     try {
-      await AsyncStorage.setItem(key, value);
-    } catch (err) {
-        console.log('Saving error, err: ' + err);
-    }
-  }
-
-  fetchSettings = async () => {
-    try {
+      console.log('--- Settings:: fetchSettings()');
       const _loggingEnabled = await AsyncStorage.getItem(SETTING_KEYS.loggingEnabled) === 'true';
       const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
       // console.log('loggingEnabled: ' + loggingEnabled);
@@ -50,6 +46,15 @@ const Settings = ({navigation}) => {
     }
   }
 
+  const saveSetting = async (key, value) => {
+    try {
+      await AsyncStorage.setItem(key, value);
+      console.log('Saved: ' + value);
+    } catch (err) {
+        console.log('Saving error, err: ' + err);
+    }
+  }
+
   function onEnableLoggingPress() {
     setLoggingEnabled(!loggingEnabled);
     saveSetting(SETTING_KEYS.loggingEnabled, (!loggingEnabled).toString());
@@ -60,28 +65,33 @@ const Settings = ({navigation}) => {
       {
         title: 'Select File',
         onDone: (path) => {
-            console.log('file selected: ' + path)
-            setFileToSaveRunLogs(path);
-            saveSetting(SETTING_KEYS.fileToSaveRunLogs, path);
+          console.log('file selected: ' + path)
+          setFileToSaveRunLogs(path);
         },
         onCancel: () => {
-            console.log('cancelled')
+          console.log('cancelled')
         }
       }
     );
   }
 
-  fetchSettings();
+  function xx(params) {};
+
+  function willBlur() {
+    console.log('--- Settings: willBlur(): fileToSaveRunLogs: ' + fileToSaveRunLogs);
+    saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToSaveRunLogs);
+  };
 
   return (
     <View style={styles.content}>
+      <NavigationEvents onWillBlur={() => willBlur()} onWillFocus={() => fetchSettings()} />
       <Text style={{fontSize: 16, marginBottom: 10}}>  
           Choose file to save run logs
       </Text>           
       <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
         <TextInput
           style={styles.textInput}
-          onChangeText={ text => setDistance(text) }            
+          onChangeText={ text => xx(text) }            
           value={fileToSaveRunLogs}
           placeholder='e.g. /data/tmp'
         />
@@ -127,3 +137,14 @@ const styles = StyleSheet.create({
   });
   
 export default Settings;
+
+  // useEffect(() => {
+  //   console.log('--- Settings: useEffect(): doing things after mount finishes');
+  //   BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+  //   return function cleanup() { // componentWillUnmount()
+  //     console.log('--- Settings: useEffect(): cleanup()... unmounting');
+  //     BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  //   }
+  //   }
+  // );
