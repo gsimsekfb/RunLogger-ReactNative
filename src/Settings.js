@@ -6,10 +6,21 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFileSelector from 'react-native-file-selector';
 import { NavigationEvents } from 'react-navigation';
+import { HeaderBackButton } from 'react-navigation-stack';
 
 export const SETTING_KEYS = { loggingEnabled: '@loggingEnabled', fileToSaveRunLogs: '@fileToSaveRunLogs' };
 
+export const saveSetting = async (key, value) => {
+  try {
+    await AsyncStorage.setItem(key, value);
+    console.log('--- Settings:: Saved: ' + value);
+  } catch (err) {
+      console.log('--- Settings:: Saving error, err: ' + err);
+  }
+}
+
 let programCounter = 0;
+let s_fileToSaveRunLogs = null; // todo: not good
 
 const Settings = ({navigation}) => {
 
@@ -28,30 +39,14 @@ const Settings = ({navigation}) => {
       console.log('--- Settings:: fetchSettings()');
       const _loggingEnabled = await AsyncStorage.getItem(SETTING_KEYS.loggingEnabled) === 'true';
       const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
-      // console.log('loggingEnabled: ' + loggingEnabled);
-      // console.log('_loggingEnabled: ' + _loggingEnabled);
-      // console.log('fileToSaveRunLogs: ' + fileToSaveRunLogs);
-      // console.log('_fileToSaveRunLogs: ' + _fileToSaveRunLogs);
-
       if(_loggingEnabled !== loggingEnabled) {
-        // console.log('qqqqq');
         setLoggingEnabled(_loggingEnabled);
       }
       if(_fileToSaveRunLogs !== fileToSaveRunLogs) {
-        // console.log('wwwww');
         setFileToSaveRunLogs(_fileToSaveRunLogs);
       }
     } catch (err) {
       console.log('Error reading value, err: ' + err);
-    }
-  }
-
-  const saveSetting = async (key, value) => {
-    try {
-      await AsyncStorage.setItem(key, value);
-      console.log('Saved: ' + value);
-    } catch (err) {
-        console.log('Saving error, err: ' + err);
     }
   }
 
@@ -75,12 +70,13 @@ const Settings = ({navigation}) => {
     );
   }
 
-  function xx(params) {};
-
+  // todo:
   function willBlur() {
-    console.log('--- Settings: willBlur(): fileToSaveRunLogs: ' + fileToSaveRunLogs);
-    saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToSaveRunLogs);
+    // console.log('--- Settings: willBlur(): fileToSaveRunLogs: ' + fileToSaveRunLogs);    
+    // saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToSaveRunLogs);
   };
+
+  s_fileToSaveRunLogs = fileToSaveRunLogs;
 
   return (
     <View style={styles.content}>
@@ -91,7 +87,7 @@ const Settings = ({navigation}) => {
       <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
         <TextInput
           style={styles.textInput}
-          onChangeText={ text => xx(text) }            
+          onChangeText={ text =>  { setFileToSaveRunLogs(text) } }           
           value={fileToSaveRunLogs}
           placeholder='e.g. /data/tmp'
         />
@@ -115,8 +111,13 @@ const Settings = ({navigation}) => {
   );
 }
 
-Settings.navigationOptions = {
-  title: 'Settings',
+Settings.navigationOptions = ({ navigation }) => { 
+  return {
+    title: 'Settings',
+    headerLeft: <HeaderBackButton 
+                  onPress={ () => navigation.navigate("Home", { s_fileToSaveRunLogs : s_fileToSaveRunLogs }) } 
+                />,
+  }
 };
 
 const styles = StyleSheet.create({

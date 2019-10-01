@@ -7,31 +7,45 @@ import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import DeviceInfo from 'react-native-device-info'
 import GestureRecognizer from 'react-native-swipe-gestures';
+import AsyncStorage from '@react-native-community/async-storage';
+import { NavigationEvents } from 'react-navigation';
 
 import AddEditDialog from './src/AddEditDialog';
 import Modal from 'react-native-modal';
+import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"]);
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
 
-/*** Next 
+const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
+  // DEFAULT_FILE_PATH: /data/user/0/com.runlogger/files/test1
+
+/* Todos 
   - Global vars
   - google, fb login
   - Settings too many renders
   - Async ops
   - Enable log runtime release build 
   - Choose run log file
-***/
+  - Hooks how to ctor or dtor effect 
+
+  Next
+  - Load from settings file   
+ */
 
 let progCounter = 0;
 let lastItemPress = 0;
+let fileToLoadSaveRunLogs = null;
 
 const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
+      
+  ////
+  const [runLogs, setRunLogs] = useState([]);
 
-  // onSettingsButtonPress();
+  // onSettingsButtonPress();   
 
   //// Logging
   // console.disableYellowBox = true;
@@ -43,41 +57,61 @@ const App = ({navigation}) => {
   if(progCounter === 1)
     console.disableYellowBox = DeviceInfo.isEmulatorSync() ? false : true;
 
-  //// --- File 
-  const FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
-      // FILE_PATH: /data/user/0/com.runlogger/files/test1
-
-  // Todo: Clear instead of delete (Update: Check later, no API to this currently)
-  function writeToFile(newRunLogs) {
-    RNFS.unlink(FILE_PATH).then(() => {
-      console.log('FILE DELETED');
-    })
-    .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
-      console.log(err.message);
-    });        
-    RNFS.writeFile(FILE_PATH, JSON.stringify(newRunLogs), 'utf8')
-      .then((success) => {
-        console.log('FILE written: ' + FILE_PATH);        
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
+  //// New s_fileToSaveRunLogs comes from Settings screen
+  const s_fileToSaveRunLogs = navigation.getParam('s_fileToSaveRunLogs')
+  if(s_fileToSaveRunLogs && s_fileToSaveRunLogs !== fileToLoadSaveRunLogs) {
+    console.log('--- App:: new fileToLoadSaveRunLogs: ' + s_fileToSaveRunLogs);
+    fileToLoadSaveRunLogs = s_fileToSaveRunLogs;
+    saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
+    writeToFile(runLogs);
   }
 
-  function readRunLogsFromFile() {
-    RNFS.readFile(FILE_PATH, 'utf8')
+  console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
+
+  //// --- Settings
+  const readRunLogsFromFile = async () => {
+    try {
+      console.log('--- App:: readRunLogsFromFile()');
+      const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
+      fileToLoadSaveRunLogs = (_fileToSaveRunLogs ? _fileToSaveRunLogs : DEFAULT_FILE_PATH);
+      _readRunLogsFromFile(fileToLoadSaveRunLogs);
+    } catch (err) {
+      console.log('--- App:: Error reading value, err: ' + err);
+    }
+  }
+
+  function _readRunLogsFromFile(file) {
+    RNFS.readFile(file, 'utf8')
       .then((content) => {  // content: string
-        console.log('--- App:: readRunLogsFromFile(): from ' + FILE_PATH)
+        console.log('--- App:: _readRunLogsFromFile(): from ' + file)
         // console.log('--- App:: FILE content: ' + content);    
         const parsed = JSON.parse(content); // parsed: array
         // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
         parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
-        console.log('--- App:: readRunLogsFromFile(): will setRunlogs()');
+        console.log('--- App:: _readRunLogsFromFile(): will setRunlogs()');
         setRunLogs(parsed)
       })
       .catch((err) => {
-        console.log(err.message);
+        console.log('_readRunLogsFromFile: error: ' + err.message);
       });   
+  }
+
+  // Todo: Clear instead of delete (Update: Check later, no API to this currently)
+  function writeToFile(newRunLogs) {
+    RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
+      console.log('FILE DELETED');
+    })
+    .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
+      console.log('writeToFile()-1: ' + err.message);
+    });        
+
+    RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
+    .then((success) => {
+      console.log('FILE written: ' + fileToLoadSaveRunLogs);        
+    })
+    .catch((err) => {
+      console.log('writeToFile()-2: ' + err.message);
+    });
   }
 
   //// First app start
@@ -85,28 +119,25 @@ const App = ({navigation}) => {
     console.log('--- App:: Reading RunLogs from file..')
     readRunLogsFromFile();
   }
-  
-  ////
-  const [runLogs, setRunLogs] = useState([]);
 
   //// Todo: Code duplication here
   //// runLogs comes empty after wake up from sleep
-  if(runLogs.length === 0 && progCounter > 1) {
-    RNFS.readFile(FILE_PATH, 'utf8')
-    .then((content) => {
-      console.log('--- App:: Sleep check: readFile() from ' + FILE_PATH);
-      const parsed = JSON.parse(content);
-      parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
-      if(parsed.length) { // todo: problems here
-        console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
-        console.log('--- App:: setRunlogs()');
-        setRunLogs(parsed);
-      }
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });    
-  }
+  // if(runLogs.length === 0 && progCounter > 1) {
+  //   RNFS.readFile(FILE_PATH, 'utf8')
+  //   .then((content) => {
+  //     console.log('--- App:: Sleep check: readFile() from ' + FILE_PATH);
+  //     const parsed = JSON.parse(content);
+  //     parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
+  //     if(parsed.length) { // todo: problems here
+  //       console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
+  //       console.log('--- App:: setRunlogs()');
+  //       setRunLogs(parsed);
+  //     }
+  //   })
+  //   .catch((err) => {
+  //     console.log(err.message);
+  //   });    
+  // }
 
   ////
   const now = new Date();  
