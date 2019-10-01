@@ -362,12 +362,10 @@ const App = ({navigation}) => {
     const dayDiff = Math.round(Math.abs((lastRunDate - now) / ONE_DAY));
     if(dayDiff < 1) return 'Today';
 
-    let lastRunStr = lastRunDate.getDate() + ' ' + MONTH_NAMES[lastRunDate.getMonth()].substring(0,3) + ', ' + 
-              DAY_NAMES[lastRunDate.getDay()] + ', ' + lastRunDate.getFullYear();      
     const weekStr = dayDiff < 7 ? '' : Math.floor(dayDiff/7) + (Math.floor(dayDiff/7) > 1 ? ' weeks' : ' week');
     const dayStr = dayDiff%7 < 1 ? '' : (dayDiff%7 + (dayDiff%7 > 1 ? ' days' : ' day'));
     const comma = weekStr !== '' && dayStr !== '' ? ', ' : '';
-    lastRunStr += ' (' + weekStr + comma + dayStr + ' ago)';   
+    const lastRunStr = weekStr + comma + dayStr + ' ago';   
     return lastRunStr; 
   }
 
