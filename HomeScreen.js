@@ -57,13 +57,23 @@ const App = ({navigation}) => {
   if(progCounter === 1)
     console.disableYellowBox = DeviceInfo.isEmulatorSync() ? false : true;
 
+  async function changeRunLogFile() {
+    console.log('--- App:: changeRunLogFile() to new file: ' + s_fileToSaveRunLogs);
+    fileToLoadSaveRunLogs = s_fileToSaveRunLogs;
+    const result = await writeToFile(runLogs);
+    if(result) 
+      await saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
+    else {
+      console.log('--- App:: changeRunLogFile() failed. Error: Cannot write to new file'); 
+      return;
+    }
+    console.log('--- App:: changeRunLogFile() completed with success');
+  }
+
   //// New s_fileToSaveRunLogs comes from Settings screen
   const s_fileToSaveRunLogs = navigation.getParam('s_fileToSaveRunLogs')
   if(s_fileToSaveRunLogs && s_fileToSaveRunLogs !== fileToLoadSaveRunLogs) {
-    console.log('--- App:: new fileToLoadSaveRunLogs: ' + s_fileToSaveRunLogs);
-    fileToLoadSaveRunLogs = s_fileToSaveRunLogs;
-    saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
-    writeToFile(runLogs);
+    changeRunLogFile();
   }
 
   console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
@@ -97,21 +107,24 @@ const App = ({navigation}) => {
   }
 
   // Todo: Clear instead of delete (Update: Check later, no API to this currently)
-  function writeToFile(newRunLogs) {
-    RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
+  async function writeToFile(newRunLogs) {
+    let result = false;
+    await RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
       console.log('FILE DELETED');
     })
-    .catch((err) => { // `unlink` will throw an error, if the item to unlink does not exist
+    .catch(err => { // `unlink` will throw an error, if the item to unlink does not exist
       console.log('writeToFile()-1: ' + err.message);
     });        
 
-    RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
-    .then((success) => {
-      console.log('FILE written: ' + fileToLoadSaveRunLogs);        
+    await RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
+    .then(success => {
+      console.log('Runlogs WRITTEN to file: ' + fileToLoadSaveRunLogs);        
+      result = true;
     })
-    .catch((err) => {
+    .catch(err => {
       console.log('writeToFile()-2: ' + err.message);
-    });
+    });    
+    return result;
   }
 
   //// First app start
