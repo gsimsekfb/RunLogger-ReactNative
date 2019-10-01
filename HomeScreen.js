@@ -22,7 +22,8 @@ const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
   // DEFAULT_FILE_PATH: /data/user/0/com.runlogger/files/test1
 
 /* Todos 
-  - Global vars
+  - Global vars (sol: ctor?)
+  - Simplify homescreen: sol: Forward dec.?
   - google, fb login
   - Settings too many renders
   - Async ops
@@ -351,7 +352,24 @@ const App = ({navigation}) => {
   const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1]);  
   const todayDate = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
-                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';                                
+                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';    
+                 
+  //// 
+  function lastRunStr() {
+    if(runLogs.length < 1) return '';
+    const lastRunDate = runLogs[runLogs.length-1].date;
+    const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds    
+    const dayDiff = Math.round(Math.abs((lastRunDate - now) / ONE_DAY));
+    if(dayDiff < 1) return 'Today';
+
+    let lastRunStr = lastRunDate.getDate() + ' ' + MONTH_NAMES[lastRunDate.getMonth()].substring(0,3) + ', ' + 
+              DAY_NAMES[lastRunDate.getDay()] + ', ' + lastRunDate.getFullYear();      
+    const weekStr = dayDiff < 7 ? '' : Math.floor(dayDiff/7) + (Math.floor(dayDiff/7) > 1 ? ' weeks' : ' week');
+    const dayStr = dayDiff%7 < 1 ? '' : (dayDiff%7 + (dayDiff%7 > 1 ? ' days' : ' day'));
+    const comma = weekStr !== '' && dayStr !== '' ? ', ' : '';
+    lastRunStr += ' (' + weekStr + comma + dayStr + ' ago)';   
+    return lastRunStr; 
+  }
 
   //// Three dots menu
   let _menuThreeDot = null;
@@ -386,9 +404,14 @@ const App = ({navigation}) => {
     >
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
       { (currentMonthAndYear === screenMonthAndYear) && 
-        <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2', padding: 2}}> 
-          {'Today: ' + todayDate} 
-         </Text> 
+        <View style={{backgroundColor: '#f2f2f2', paddingBottom: 4}}>
+          <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2'}}> 
+            {'Today: ' + todayDate}           
+          </Text> 
+          <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2'}}> 
+            {'Last run: ' + lastRunStr()} 
+          </Text>         
+        </View>
       }
       <FlatList
         data={dataFlatList}
