@@ -23,6 +23,7 @@ const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
 
 /* Todos 
   - Global vars (sol: ctor?)
+  - DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
   - Simplify homescreen: sol: Forward dec.?
   - google, fb login
   - Settings too many renders
@@ -43,38 +44,15 @@ const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
       
-  ////
   const [runLogs, setRunLogs] = useState([]);
 
-  // onSettingsButtonPress();   
-
   //// Logging
-  // console.disableYellowBox = true;
-  // // a) Async
-  // DeviceInfo.isEmulator().then(isEmulator => {    
-  //   console.disableYellowBox = isEmulator ? false : true;
-  // });
-  // b) Sync
-  if(progCounter === 1)
-    console.disableYellowBox = DeviceInfo.isEmulatorSync() ? false : true;
-
-  async function changeRunLogFile() {
-    console.log('--- App:: changeRunLogFile() to new file: ' + s_fileToSaveRunLogs);
-    fileToLoadSaveRunLogs = s_fileToSaveRunLogs;
-    const result = await writeToFile(runLogs);
-    if(result) 
-      await saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
-    else {
-      console.log('--- App:: changeRunLogFile() failed. Error: Cannot write to new file'); 
-      return;
-    }
-    console.log('--- App:: changeRunLogFile() completed with success');
-  }
+  disableYellowBoxWarnings();
 
   //// New s_fileToSaveRunLogs comes from Settings screen
   const s_fileToSaveRunLogs = navigation.getParam('s_fileToSaveRunLogs')
   if(s_fileToSaveRunLogs && s_fileToSaveRunLogs !== fileToLoadSaveRunLogs) {
-    changeRunLogFile();
+    changeRunLogFile(s_fileToSaveRunLogs, runLogs);
   }
 
   console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
@@ -105,27 +83,6 @@ const App = ({navigation}) => {
       .catch((err) => {
         console.log('_readRunLogsFromFile: error: ' + err.message);
       });   
-  }
-
-  // Todo: Clear instead of delete (Update: Check later, no API to this currently)
-  async function writeToFile(newRunLogs) {
-    let result = false;
-    await RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
-      console.log('FILE DELETED');
-    })
-    .catch(err => { // `unlink` will throw an error, if the item to unlink does not exist
-      console.log('writeToFile()-1: ' + err.message);
-    });        
-
-    await RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
-    .then(success => {
-      console.log('Runlogs WRITTEN to file: ' + fileToLoadSaveRunLogs);        
-      result = true;
-    })
-    .catch(err => {
-      console.log('writeToFile()-2: ' + err.message);
-    });    
-    return result;
   }
 
   //// First app start
@@ -201,32 +158,6 @@ const App = ({navigation}) => {
       console.log('--- App:: Adding new log...')          
       writeToFile(newRunLogs);
     }
-  }
-
-  function weekOfYear(date) {
-    const onejan = new Date(date.getFullYear(), 0, 1);
-    return( Math.ceil( (((date - onejan) / 86400000) + onejan.getDay() + 1) / 7 ) );
-  }
-
-  // returns: '7.2019'
-  function getMonthAndYear(date) {
-    return (date.getMonth() + 1 + '.' + date.getFullYear())
-  }
-
-  function nextMonthAndYear(monthAndYear) {
-    let month = Number(monthAndYear.split('.')[0]);
-    let year = Number(monthAndYear.split('.')[1]);
-    (12 === month) ? (month = 1, ++year) : ++month;
-    console.log(month + '.' + year)    
-    return (String(month) + '.' + String(year))    
-  }
-
-  function prevMonthAndYear(monthAndYear) {
-    let month = Number(monthAndYear.split('.')[0]);
-    let year = Number(monthAndYear.split('.')[1]);
-    (1 === month) ? (month = 12, --year) : --month;
-    console.log(month + '.' + year)    
-    return (String(month) + '.' + String(year))    
   }
 
   //// --- Item Press
@@ -310,19 +241,9 @@ const App = ({navigation}) => {
     setShowAddEditDialog(true)
   }  
 
-  function getMonthLogs(monthAndYear /* e.g. 7.2019 */) { 
-    let monthLogs = []
-    for (const log of runLogs) {  
-      if (monthAndYear === getMonthAndYear(log.date)) {
-        monthLogs.push(log);
-      }
-    }
-    return monthLogs;
-  }
-
   //// --- Create flatlist
   console.log("--- App:: create dataFlatList ---")
-  const monthLogs = getMonthLogs( screenMonthAndYear );
+  const monthLogs = getMonthLogs( screenMonthAndYear, runLogs );
   const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
   let dataFlatList = []
   if(monthLogs && monthLogs.length > 0) {
@@ -544,5 +465,88 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.1)',
   },
 });
+
+//// -------------------- Functions
+
+// Todo: Clear instead of delete (Update: Check later, no API to this currently)
+async function writeToFile(newRunLogs) {
+  let result = false;
+  await RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
+    console.log('FILE DELETED');
+  })
+  .catch(err => { // `unlink` will throw an error, if the item to unlink does not exist
+    console.log('writeToFile()-1: ' + err.message);
+  });        
+
+  await RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
+  .then(success => {
+    console.log('Runlogs WRITTEN to file: ' + fileToLoadSaveRunLogs);        
+    result = true;
+  })
+  .catch(err => {
+    console.log('writeToFile()-2: ' + err.message);
+  });    
+  return result;
+}
+
+async function changeRunLogFile(new_fileToSaveRunLogs, runLogs) {
+  console.log('--- App:: changeRunLogFile() to new file: ' + new_fileToSaveRunLogs);
+  fileToLoadSaveRunLogs = new_fileToSaveRunLogs;
+  const result = await writeToFile(runLogs);
+  if(result) 
+    await saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
+  else {
+    console.log('--- App:: changeRunLogFile() failed. Error: Cannot write to new file'); 
+    return;
+  }
+  console.log('--- App:: changeRunLogFile() completed with success');
+}
+
+function disableYellowBoxWarnings() {
+  // console.disableYellowBox = true;
+  // // a) Async
+  // DeviceInfo.isEmulator().then(isEmulator => {    
+  //   console.disableYellowBox = isEmulator ? false : true;
+  // });
+  // b) Sync
+  if(progCounter === 1)
+    console.disableYellowBox = DeviceInfo.isEmulatorSync() ? false : true;
+}
+
+function weekOfYear(date) {
+  const onejan = new Date(date.getFullYear(), 0, 1);
+  return( Math.ceil( (((date - onejan) / 86400000) + onejan.getDay() + 1) / 7 ) );
+}
+
+function getMonthLogs(monthAndYear /* e.g. 7.2019 */, runLogs) { 
+  let monthLogs = []
+  for (const log of runLogs) {  
+    if (monthAndYear === getMonthAndYear(log.date)) {
+      monthLogs.push(log);
+    }
+  }
+  return monthLogs;
+}
+
+// returns: '7.2019'
+function getMonthAndYear(date) {
+  return (date.getMonth() + 1 + '.' + date.getFullYear())
+}
+
+function nextMonthAndYear(monthAndYear) {
+  let month = Number(monthAndYear.split('.')[0]);
+  let year = Number(monthAndYear.split('.')[1]);
+  (12 === month) ? (month = 1, ++year) : ++month;
+  console.log(month + '.' + year)    
+  return (String(month) + '.' + String(year))    
+}
+
+function prevMonthAndYear(monthAndYear) {
+  let month = Number(monthAndYear.split('.')[0]);
+  let year = Number(monthAndYear.split('.')[1]);
+  (1 === month) ? (month = 12, --year) : --month;
+  console.log(month + '.' + year)    
+  return (String(month) + '.' + String(year))    
+}
 
 export default App;
