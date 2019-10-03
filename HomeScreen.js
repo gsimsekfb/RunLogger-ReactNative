@@ -1,26 +1,15 @@
 import React, {useState} from 'react';
-import {
-  Image, StyleSheet, View, Text, FlatList, TouchableOpacity
-} from 'react-native';
+import { Image, StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import DeviceInfo from 'react-native-device-info'
 import GestureRecognizer from 'react-native-swipe-gestures';
 import AsyncStorage from '@react-native-community/async-storage';
-import { NavigationEvents } from 'react-navigation';
+import Modal from 'react-native-modal';
 
 import AddEditDialog from './src/AddEditDialog';
-import Modal from 'react-native-modal';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
-
-const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"]);
-const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
-const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
-
-const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
-  // DEFAULT_FILE_PATH: /data/user/0/com.runlogger/files/test1
 
 /* Todos 
   - Global vars (sol: ctor?)
@@ -36,6 +25,14 @@ const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
   Next
   - Load from settings file   
  */
+
+const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"]);
+const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
+
+const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
+  // DEFAULT_FILE_PATH: /data/user/0/com.runlogger/files/test1
 
 let progCounter = 0;
 let lastItemPress = 0;
@@ -101,6 +98,7 @@ const App = ({navigation}) => {
   // Add or edit new log (AddEditDialog save button pressed)
   function addOrEditNewLog (newLog) {  
     setShowAddEditDialog(false);
+
     const dateFromDatePicker = getDateObjFromDateStr(newLog.date);    
     const newLogEdited = { // next: Get Date() object from DatePicker      
       timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
@@ -141,6 +139,7 @@ const App = ({navigation}) => {
     //
     setSelectedItemIndex(index);  // UI
     setMonthLogIndex(item.monthLogIndex);
+    const monthLogs = getMonthLogs(screenMonthAndYear, runLogs);
     setLogToEdit(monthLogs[item.monthLogIndex])
   }
 
@@ -184,8 +183,12 @@ const App = ({navigation}) => {
 
   function onEditButtonPress() {
     // console.log(`Edit button press, selectedItemIndex: ` + selectedItemIndex);
-    if(selectedItemIndex < 0) return; 
-    if(!logToEdit) setLogToEdit(monthLogs[monthLogIndex]);
+    if(selectedItemIndex < 0) return;     
+    if(!logToEdit) {
+      const monthLogs = getMonthLogs(screenMonthAndYear, runLogs);
+      setLogToEdit(monthLogs[monthLogIndex]);
+    }
+
     setShowAddEditDialog(true)    
   }
 
@@ -195,31 +198,8 @@ const App = ({navigation}) => {
     setShowAddEditDialog(true)
   }  
 
-  const dataForFlatList = createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex);
-
-  const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
-                                Number(screenMonthAndYear.split('.')[1]);  
-  const todayDate = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
-                    DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';    
-                 
-  //// 
-  function lastRunStr() {
-    if(runLogs.length < 1) return '';
-    const lastRunDate = runLogs[runLogs.length-1].date;
-    const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds    
-    const dayDiff = Math.round(Math.abs((lastRunDate - now) / ONE_DAY));
-    if(dayDiff < 1) return 'Today';
-
-    const weekStr = dayDiff < 7 ? '' : Math.floor(dayDiff/7) + (Math.floor(dayDiff/7) > 1 ? ' weeks' : ' week');
-    const dayStr = dayDiff%7 < 1 ? '' : (dayDiff%7 + (dayDiff%7 > 1 ? ' days' : ' day'));
-    const comma = weekStr !== '' && dayStr !== '' ? ', ' : '';
-    const lastRunStr = weekStr + comma + dayStr + ' ago';   
-    return lastRunStr; 
-  }
-
   //// Three dots menu
   let _menuThreeDot = null;
-
   setMenuRef = ref => _menuThreeDot = ref;
   showThreeDotMenu = () => _menuThreeDot.show();
 
@@ -231,31 +211,33 @@ const App = ({navigation}) => {
   onDeleteMenuPress = () => {
     _menuThreeDot.hide();
     onDeleteButtonPress();
-  };  
-
-  //// GestureRecognizer
-  const GR_CONFIG = {
-    velocityThreshold: 0.1,
-    directionalOffsetThreshold: 40
-  };
-
-  function onSwipe(gestureName, gestureState) {        
+  };    
+  
+  function onSwipe(gestureName) {        
     if(gestureName === 'SWIPE_LEFT') onNextButtonPress();
     else if(gestureName === 'SWIPE_RIGHT') onPrevButtonPress();
   }
 
+  const dataForFlatList = createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex);
+
+  const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
+                                Number(screenMonthAndYear.split('.')[1]);  
+  const todayDateStr = now.getDate() + ' ' + MONTH_NAMES[now.getMonth()].substring(0,3) + ', ' + 
+                       DAY_NAMES[now.getDay()] + ', ' + now.getFullYear() + ' (Week ' +  weekOfYear(now) + ')';                   
+
+  //// GestureRecognizer
+  const GR_CONFIG = { velocityThreshold: 0.1, directionalOffsetThreshold: 40 };
+
   return (
-    <GestureRecognizer style={{flex: 1}} config={GR_CONFIG}
-      onSwipe={(direction, state) => onSwipe(direction, state)}      
-    >
+    <GestureRecognizer style={{flex: 1}} config={GR_CONFIG} onSwipe={(direction) => onSwipe(direction)} >
       <Text style={styles.header}> {screenMonthAndYearStr} </Text>
       { (currentMonthAndYear === screenMonthAndYear) && 
         <View style={{backgroundColor: '#f2f2f2', paddingBottom: 4}}>
           <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2'}}> 
-            {'Today: ' + todayDate}           
+            {'Today: ' + todayDateStr}           
           </Text> 
           <Text style={{fontSize: 12, textAlign: 'center', backgroundColor: '#f2f2f2'}}> 
-            {'Last run: ' + lastRunStr()} 
+            {'Last run: ' + lastRunStr(runLogs, now)} 
           </Text>         
         </View>
       }
@@ -394,6 +376,19 @@ const styles = StyleSheet.create({
 });
 
 //// -------------------- Independent Functions
+
+function lastRunStr(runLogs, now) {
+  if(runLogs.length < 1) return '';
+  const lastRunDate = runLogs[runLogs.length-1].date;
+  const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds    
+  const dayDiff = Math.round(Math.abs((lastRunDate - now) / ONE_DAY));
+  if(dayDiff < 1) return 'Today';
+
+  const weekStr = dayDiff < 7 ? '' : Math.floor(dayDiff/7) + (Math.floor(dayDiff/7) > 1 ? ' weeks' : ' week');
+  const dayStr = dayDiff%7 < 1 ? '' : (dayDiff%7 + (dayDiff%7 > 1 ? ' days' : ' day'));
+  const comma = weekStr !== '' && dayStr !== '' ? ', ' : '';
+  return weekStr + comma + dayStr + ' ago'; 
+}
 
 function createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex) {
   console.log("--- App:: creating data for FlatList ---")
