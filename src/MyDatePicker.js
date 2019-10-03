@@ -23,7 +23,6 @@ export default class MyDatePicker extends Component {
         style={{width: 200, top: 0}}        
         date={this.state.date}
         mode="datetime" // todo: not working on Samsung Galaxy A5 2016 (Android 7.0, Nougat)
-        androidMode="calendar"
         format="DD-MM-YYYY HH:mm"
         onDateChange={(date) => {this.dateChange(date)}}
       />
