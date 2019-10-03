@@ -17,6 +17,7 @@ import {SETTING_KEYS, saveSetting} from './src/Settings';
 const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"]);
 const DAY_NAMES = Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
 
 const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
   // DEFAULT_FILE_PATH: /data/user/0/com.runlogger/files/test1
@@ -194,34 +195,7 @@ const App = ({navigation}) => {
     setShowAddEditDialog(true)
   }  
 
-  //// --- Create data for flatlist
-  console.log("--- App:: create data for FlatList ---")
-  const monthLogs = getMonthLogs( screenMonthAndYear, runLogs );
-  const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
-  let dataFlatList = []
-  if(monthLogs && monthLogs.length > 0) {
-    let week = weekOfYear(monthLogs[0].date)
-    dataFlatList.push({ key: 'Week ' + weekOfYear(monthLogs[0].date), type: ITEM_TYPE.week })
-    for (const [i, log] of monthLogs.entries()) {
-      if(week !== weekOfYear(log.date)) 
-        dataFlatList.push({ key: 'Week ' +  weekOfYear(log.date), type: ITEM_TYPE.week })
-
-      const dateStr = log.date.getDate() + ' ' + MONTH_NAMES[log.date.getMonth()].substring(0,3) + ', ' + 
-                      DAY_NAMES[log.date.getDay()];
-      // Min, meter, notes
-      const min = log.min === 0 ? '' : (log.min + ' min ');      
-      const dis = log.distance === 0 ? '' : (', ' + log.distance + ' meters ');
-      const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
-      dataFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
-                          notes, type: ITEM_TYPE.runData })    
-      
-      week = weekOfYear(log.date)
-    }
-    // console.log("--- App:: dataFlatList: ", dataFlatList);
-
-    // Add style for selected item
-    dataFlatList[selectedItemIndex] = {...dataFlatList[selectedItemIndex], isSelected: true}
-  }
+  const dataForFlatList = createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex);
 
   const screenMonthAndYearStr = MONTH_NAMES[Number(screenMonthAndYear.split('.')[0])-1] + ' ' +
                                 Number(screenMonthAndYear.split('.')[1]);  
@@ -286,7 +260,7 @@ const App = ({navigation}) => {
         </View>
       }
       <FlatList
-        data={dataFlatList}
+        data={dataForFlatList}
         renderItem={ ({ item, index }) => {
           return (
             <View style={{flex:1, flexDirection: 'row'}}>
@@ -419,7 +393,36 @@ const styles = StyleSheet.create({
   },
 });
 
-//// -------------------- Functions
+//// -------------------- Independent Functions
+
+function createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex) {
+  console.log("--- App:: creating data for FlatList ---")
+  const monthLogs = getMonthLogs( screenMonthAndYear, runLogs );
+  let dataForFlatList = []
+  if(monthLogs && monthLogs.length > 0) {
+    let week = weekOfYear(monthLogs[0].date)
+    for (const [i, log] of monthLogs.entries()) {
+      if(i === 0 || week !== weekOfYear(log.date)) 
+        dataForFlatList.push({ key: 'Week ' +  weekOfYear(log.date), type: ITEM_TYPE.week })
+
+      const dateStr = log.date.getDate() + ' ' + MONTH_NAMES[log.date.getMonth()].substring(0,3) + ', ' + 
+                      DAY_NAMES[log.date.getDay()];
+      // Min, meter, notes
+      const min = log.min === 0 ? '' : (log.min + ' min ');      
+      const dis = log.distance === 0 ? '' : (', ' + log.distance + ' meters ');
+      const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
+      dataForFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
+                          notes, type: ITEM_TYPE.runData })    
+      
+      week = weekOfYear(log.date)
+    }
+    // console.log("--- App:: dataForFlatList: ", dataForFlatList);
+
+    // Add style for selected item
+    dataForFlatList[selectedItemIndex] = {...dataForFlatList[selectedItemIndex], isSelected: true}
+  }    
+  return dataForFlatList;
+}
 
 function getDateObjFromDateStr(date) {
   if(date && date instanceof Date) return date;    
@@ -433,7 +436,7 @@ function getDateObjFromDateStr(date) {
   return(new Date(y,m-1,d,hh,mm));    
 } 
 
-const readRunLogsFromFile = async () => {
+async function readRunLogsFromFile() {
   try {
     console.log('--- App:: readRunLogsFromFile()');
     const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
