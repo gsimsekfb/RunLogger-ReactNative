@@ -53,6 +53,12 @@ const App = ({navigation}) => {
   const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
   //
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
+  // Item Press
+  const [monthLogIndex, setMonthLogIndex] = useState(-1);         // monthLog array index of selected UI item
+  const [selectedItemIndex, setSelectedItemIndex] = useState(-1); // UI row index
+  //
+  const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
+  const [logToEdit, setLogToEdit] = useState();  
 
   //// Logging
   disableYellowBoxWarnings();
@@ -91,57 +97,36 @@ const App = ({navigation}) => {
   //   });    
   // }
 
-
-
-  const _hideAddEditDialog = () => {
-    setShowAddEditDialog(false)
-  }
-
-  // AddEditDialog save button pressed
-  const newLogFromAddEditDialog = (data) => {  
-    setShowAddEditDialog(false)
-
-    let dateFromDatePicker = data.date;    
-    // Note: The date from MyDatePicker comes as string if it comes from 
-    if(dateFromDatePicker && !(dateFromDatePicker instanceof Date)) { 
-      const d = dateFromDatePicker.split('-')[0]
-      const m = dateFromDatePicker.split('-')[1]
-      const y = dateFromDatePicker.split('-')[2].split(' ')[0]
-      const time = dateFromDatePicker.split(' ')[1]
-      const hh = time.split(':')[0]
-      const mm = time.split(':')[1]
-      dateFromDatePicker = new Date(y,m-1,d,hh,mm);
-    }
-       
-    const newLog = { // next: Get Date() object from DatePicker      
+  // Add or edit new log (AddEditDialog save button pressed)
+  function addOrEditNewLog (newLog) {  
+    setShowAddEditDialog(false);
+    const dateFromDatePicker = getDateObjFromDateStr(newLog.date);    
+    const newLogEdited = { // next: Get Date() object from DatePicker      
       timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
-      date: dateFromDatePicker, min: data.min, 
-      distance: data.distance, notes: data.notes 
+      date: dateFromDatePicker, min: newLog.min, 
+      distance: newLog.distance, notes: newLog.notes 
     }
     if(logToEdit !== null) { // Edit (delete and re-create) existing log
       console.log('--- App:: Editing existing log ...')        
       let newRunLogs = [...runLogs];
       newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
-      newRunLogs = [...newRunLogs, newLog].sort((a,b) => a.timestamp - b.timestamp)
+      newRunLogs = [...newRunLogs, newLogEdited].sort((a,b) => a.timestamp - b.timestamp)
       writeToFile(newRunLogs);
       setRunLogs(newRunLogs)
       setSelectedItemIndex(-1)      
       setLogToEdit(null)      
     }
     else {  // Add new log 
-      const newRunLogs = [...runLogs, newLog].sort((a,b) => a.timestamp - b.timestamp);
+      const newRunLogs = [...runLogs, newLogEdited].sort((a,b) => a.timestamp - b.timestamp);
       setRunLogs(newRunLogs)
       console.log('--- App:: Adding new log...')          
       writeToFile(newRunLogs);
     }
   }
-
-  //// --- Item Press
-  const [monthLogIndex, setMonthLogIndex] = useState(-1);   // monthLog array index of selected UI item
-  const [selectedItemIndex, setSelectedItemIndex] = useState(-1);   // UI row index
   
-  onItemPress = (item, index) => {
-    if(item.type !== 'runData') return; 
+  function onItemPress(item, index) {
+    if(item.type !== 'runData') 
+      return; 
 
     // Double tap
     const time = new Date().getTime();
@@ -178,17 +163,10 @@ const App = ({navigation}) => {
     setScreenMonthAndYear(prevMonthAndYear(screenMonthAndYear))    
   }
 
-  const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
-
   function onDeleteButtonPress() {
     console.log(`--- App: Del button press`) 
     if(selectedItemIndex === -1) return;
     setShowConfirmDeleteDialog(true);
-  } 
-
-  function onSettingsButtonPress() {
-    // console.log(`--- App: Settings button press`)     
-    navigation.navigate('Settings', {name: 'Settings'});    
   } 
 
   function onConfirmDeleteDialog(deleteFile) {
@@ -203,7 +181,6 @@ const App = ({navigation}) => {
     writeToFile(newRunLogs);
   }
 
-  const [logToEdit, setLogToEdit] = useState();  
   function onEditButtonPress() {
     // console.log(`Edit button press, selectedItemIndex: ` + selectedItemIndex);
     if(selectedItemIndex < 0) return; 
@@ -217,8 +194,8 @@ const App = ({navigation}) => {
     setShowAddEditDialog(true)
   }  
 
-  //// --- Create flatlist
-  console.log("--- App:: create dataFlatList ---")
+  //// --- Create data for flatlist
+  console.log("--- App:: create data for FlatList ---")
   const monthLogs = getMonthLogs( screenMonthAndYear, runLogs );
   const ITEM_TYPE = Object.freeze({ week: "week", dayAndDate: "dayAndDate", runData: "runData" });    
   let dataFlatList = []
@@ -350,7 +327,7 @@ const App = ({navigation}) => {
         style={{ backgroundColor: '' }}
       />
       <View style={{ height: 60, padding: 2, flexDirection: 'row', backgroundColor: '#d9d9d9' }}>
-        <TouchableOpacity style={styles.button} onPress={onSettingsButtonPress}>
+        <TouchableOpacity style={styles.button} onPress={ () => navigation.navigate('Settings', {name: 'Settings'}) }>
           <Image source={require('./src/icons/settings.png')} />
         </TouchableOpacity>          
         <TouchableOpacity style={styles.button} onPress={onAddButtonPress}>
@@ -365,7 +342,7 @@ const App = ({navigation}) => {
       </View>
       { showAddEditDialog &&
         <AddEditDialog 
-          logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={newLogFromAddEditDialog} 
+          logToEdit={logToEdit} hideAddEditDialog={() => setShowAddEditDialog(false)} sendData={addOrEditNewLog} 
         />        
       }
       <Modal isVisible={showConfirmDeleteDialog}>      
@@ -443,6 +420,18 @@ const styles = StyleSheet.create({
 });
 
 //// -------------------- Functions
+
+function getDateObjFromDateStr(date) {
+  if(date && date instanceof Date) return date;    
+  // Note: The date from MyDatePicker comes as string     
+  const d = date.split('-')[0];
+  const m = date.split('-')[1];
+  const y = date.split('-')[2].split(' ')[0];
+  const time = date.split(' ')[1];
+  const hh = time.split(':')[0];
+  const mm = time.split(':')[1];
+  return(new Date(y,m-1,d,hh,mm));    
+} 
 
 const readRunLogsFromFile = async () => {
   try {
