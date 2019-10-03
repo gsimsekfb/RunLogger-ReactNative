@@ -43,8 +43,16 @@ let fileToLoadSaveRunLogs = null;
 const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
+  console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
       
+  //// State variables 
   const [runLogs, setRunLogs] = useState([]);
+  //
+  const now = new Date();  
+  const currentMonthAndYear = String(now.getMonth()+1) + '.' + String(now.getFullYear())
+  const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
+  //
+  const [showAddEditDialog, setShowAddEditDialog] = useState(false);
 
   //// Logging
   disableYellowBoxWarnings();
@@ -55,41 +63,14 @@ const App = ({navigation}) => {
     changeRunLogFile(s_fileToSaveRunLogs, runLogs);
   }
 
-  console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
-
-  //// --- Settings
-  const readRunLogsFromFile = async () => {
-    try {
-      console.log('--- App:: readRunLogsFromFile()');
-      const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
-      fileToLoadSaveRunLogs = (_fileToSaveRunLogs ? _fileToSaveRunLogs : DEFAULT_FILE_PATH);
-      _readRunLogsFromFile(fileToLoadSaveRunLogs);
-    } catch (err) {
-      console.log('--- App:: Error reading value, err: ' + err);
-    }
-  }
-
-  function _readRunLogsFromFile(file) {
-    RNFS.readFile(file, 'utf8')
-      .then((content) => {  // content: string
-        console.log('--- App:: _readRunLogsFromFile(): from ' + file)
-        // console.log('--- App:: FILE content: ' + content);    
-        const parsed = JSON.parse(content); // parsed: array
-        // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
-        parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
-        console.log('--- App:: _readRunLogsFromFile(): will setRunlogs()');
-        setRunLogs(parsed)
-      })
-      .catch((err) => {
-        console.log('_readRunLogsFromFile: error: ' + err.message);
-      });   
+  async function loadRunLogsFromFile() {
+    console.log('--- App:: Reading RunLogs from file..')
+    setRunLogs(await readRunLogsFromFile());
   }
 
   //// First app start
-  if(progCounter === 1) {
-    console.log('--- App:: Reading RunLogs from file..')
-    readRunLogsFromFile();
-  }
+  if(progCounter === 1) 
+    loadRunLogsFromFile();
 
   //// Todo: Code duplication here
   //// runLogs comes empty after wake up from sleep
@@ -110,19 +91,14 @@ const App = ({navigation}) => {
   //   });    
   // }
 
-  ////
-  const now = new Date();  
-  const currentMonthAndYear = String(now.getMonth()+1) + '.' + String(now.getFullYear())
-  const [screenMonthAndYear, setScreenMonthAndYear] = useState(currentMonthAndYear);
-  
-  ///
-  const [showAddEditDialog, setShowAddEditDialog] = useState(false);
+
+
   const _hideAddEditDialog = () => {
     setShowAddEditDialog(false)
   }
 
   // AddEditDialog save button pressed
-  const _dataFromAddEditDialog = (data) => {  
+  const newLogFromAddEditDialog = (data) => {  
     setShowAddEditDialog(false)
 
     let dateFromDatePicker = data.date;    
@@ -389,7 +365,7 @@ const App = ({navigation}) => {
       </View>
       { showAddEditDialog &&
         <AddEditDialog 
-          logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={_dataFromAddEditDialog} 
+          logToEdit={logToEdit} hideAddEditDialog={_hideAddEditDialog} sendData={newLogFromAddEditDialog} 
         />        
       }
       <Modal isVisible={showConfirmDeleteDialog}>      
@@ -467,6 +443,37 @@ const styles = StyleSheet.create({
 });
 
 //// -------------------- Functions
+
+const readRunLogsFromFile = async () => {
+  try {
+    console.log('--- App:: readRunLogsFromFile()');
+    const _fileToSaveRunLogs = await AsyncStorage.getItem(SETTING_KEYS.fileToSaveRunLogs);
+    fileToLoadSaveRunLogs = (_fileToSaveRunLogs ? _fileToSaveRunLogs : DEFAULT_FILE_PATH);
+    return(await _readRunLogsFromFile(fileToLoadSaveRunLogs));
+  } catch (err) {
+    console.log('--- App:: Error reading value, err: ' + err);
+  }
+  return [];
+}
+
+async function _readRunLogsFromFile(file) {
+  let logsFromFile = null
+  await RNFS.readFile(file, 'utf8')
+    .then((content) => {  // content: string
+      console.log('--- App:: _readRunLogsFromFile(): from ' + file)
+      // console.log('--- App:: FILE content: ' + content);    
+      const parsed = JSON.parse(content); // parsed: array
+      // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
+      parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
+      console.log('--- App:: _readRunLogsFromFile(): will setRunlogs()');
+      logsFromFile = parsed;
+      // setRunLogs(parsed)
+    })
+    .catch((err) => {
+      console.log('_readRunLogsFromFile: error: ' + err.message);
+    });   
+    return logsFromFile;
+}
 
 // Todo: Clear instead of delete (Update: Check later, no API to this currently)
 async function writeToFile(newRunLogs) {
