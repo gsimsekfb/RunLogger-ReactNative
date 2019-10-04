@@ -68,7 +68,6 @@ const App = ({navigation}) => {
   }
 
   async function loadRunLogsFromFile() {
-    console.log('--- App:: Reading RunLogs from file..')
     setRunLogs(await readRunLogsFromFile());
   }
 
@@ -76,24 +75,13 @@ const App = ({navigation}) => {
   if(progCounter === 1) 
     loadRunLogsFromFile();
 
-  //// Todo: Code duplication here
-  //// runLogs comes empty after wake up from sleep
-  // if(runLogs.length === 0 && progCounter > 1) {
-  //   RNFS.readFile(FILE_PATH, 'utf8')
-  //   .then((content) => {
-  //     console.log('--- App:: Sleep check: readFile() from ' + FILE_PATH);
-  //     const parsed = JSON.parse(content);
-  //     parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
-  //     if(parsed.length) { // todo: problems here
-  //       console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
-  //       console.log('--- App:: setRunlogs()');
-  //       setRunLogs(parsed);
-  //     }
-  //   })
-  //   .catch((err) => {
-  //     console.log(err.message);
-  //   });    
-  // }
+  async function loadRunLogsAfterWakeup() {
+    setRunLogs(await getRunLogsAfterWakeUp());    
+  }
+
+  //// To fix problem: runLogs comes empty after wake up from sleep
+  if(runLogs.length === 0 && progCounter > 1) 
+    loadRunLogsAfterWakeup();
 
   // Add or edit new log (AddEditDialog save button pressed)
   function addOrEditNewLog (newLog) {  
@@ -377,6 +365,25 @@ const styles = StyleSheet.create({
 
 //// -------------------- Independent Functions
 
+async function getRunLogsAfterWakeUp() {
+  let runlogs = [];
+  await RNFS.readFile(fileToLoadSaveRunLogs, 'utf8')
+  .then((content) => {
+    console.log('--- App:: Sleep check: readFile() from ' + fileToLoadSaveRunLogs);
+    const parsed = JSON.parse(content);
+    parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
+    if(parsed.length) { // todo: problems here
+      console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
+      console.log('--- App:: setRunlogs()');
+      runlogs = parsed;
+    }
+  })
+  .catch((err) => {
+    console.log(err.message);
+  });    
+  return runlogs;
+}  
+
 function lastRunStr(runLogs, now) {
   if(runLogs.length < 1) return '';
   const lastRunDate = runLogs[runLogs.length-1].date;
@@ -452,7 +459,7 @@ async function _readRunLogsFromFile(file) {
       const parsed = JSON.parse(content); // parsed: array
       // console.log('--- FILE parsed: ' + JSON.stringify(parsed));
       parsed.forEach( obj => obj.date = new Date(obj.timestamp*1000) );
-      console.log('--- App:: _readRunLogsFromFile(): will setRunlogs()');
+      // console.log('--- App:: _readRunLogsFromFile(): will setRunlogs()');
       logsFromFile = parsed;
       // setRunLogs(parsed)
     })
