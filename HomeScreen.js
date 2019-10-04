@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import { Image, StyleSheet, View, Text, FlatList, TouchableOpacity } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { Image, StyleSheet, View, Text, FlatList, TouchableOpacity, AppState } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
@@ -37,12 +37,14 @@ const DEFAULT_FILE_PATH = RNFS.DocumentDirectoryPath + '/test1';
 let progCounter = 0;
 let lastItemPress = 0;
 let fileToLoadSaveRunLogs = null;
+let appState = AppState.currentState;
+let runLogsBeforeSleep = [];
 
 const App = ({navigation}) => {
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
   console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
-      
+
   //// State variables 
   const [runLogs, setRunLogs] = useState([]);
   //
@@ -57,6 +59,27 @@ const App = ({navigation}) => {
   //
   const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
   const [logToEdit, setLogToEdit] = useState();  
+
+  useEffect(
+		() => { // 'Mounted'
+      AppState.addEventListener('change', handleAppStateChange);
+		  return () => { // 'Will unmount'
+        AppState.removeEventListener('change', handleAppStateChange);
+		  }
+		}
+  );
+
+  //// Handle wakeup from sleep
+  // To fix problem: runLogs comes empty after wake up from sleep
+  function handleAppStateChange (nextAppState) {
+    if(nextAppState === 'background') runLogsBeforeSleep = runLogs;
+    appState = nextAppState;
+  }
+    
+  if(appState === 'background') { 
+    appState = 'active';
+    setRunLogs(runLogsBeforeSleep);
+  }
 
   //// Logging
   disableYellowBoxWarnings();
@@ -74,14 +97,6 @@ const App = ({navigation}) => {
   //// First app start
   if(progCounter === 1) 
     loadRunLogsFromFile();
-
-  async function loadRunLogsAfterWakeup() {
-    setRunLogs(await getRunLogsAfterWakeUp());    
-  }
-
-  //// To fix problem: runLogs comes empty after wake up from sleep
-  if(runLogs.length === 0 && progCounter > 1) 
-    loadRunLogsAfterWakeup();
 
   // Add or edit new log (AddEditDialog save button pressed)
   function addOrEditNewLog (newLog) {  
@@ -364,25 +379,6 @@ const styles = StyleSheet.create({
 });
 
 //// -------------------- Independent Functions
-
-async function getRunLogsAfterWakeUp() {
-  let runlogs = [];
-  await RNFS.readFile(fileToLoadSaveRunLogs, 'utf8')
-  .then((content) => {
-    console.log('--- App:: Sleep check: readFile() from ' + fileToLoadSaveRunLogs);
-    const parsed = JSON.parse(content);
-    parsed.forEach(obj => obj.date = new Date(obj.timestamp*1000));
-    if(parsed.length) { // todo: problems here
-      console.log('--- App:: wake up from sleep, parsed.length: ' + parsed.length);
-      console.log('--- App:: setRunlogs()');
-      runlogs = parsed;
-    }
-  })
-  .catch((err) => {
-    console.log(err.message);
-  });    
-  return runlogs;
-}  
 
 function lastRunStr(runLogs, now) {
   if(runLogs.length < 1) return '';
