@@ -12,15 +12,13 @@ import AddEditDialog from './src/AddEditDialog';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 /* Todos 
-  - Global vars (sol: ctor?)
   - DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
+  - File not written error info
   - Simplify homescreen: sol: Forward dec.?
   - google, fb login
   - Settings too many renders
   - Async ops
   - Enable log runtime release build 
-  - Choose run log file
-  - Hooks how to ctor or dtor effect 
 
   Next
   - Load from settings file   
@@ -381,7 +379,7 @@ const styles = StyleSheet.create({
 //// -------------------- Independent Functions
 
 function lastRunStr(runLogs, now) {
-  if(runLogs.length < 1) return '';
+  if(!runLogs || runLogs.length < 1) return 'N/A';
   const lastRunDate = runLogs[runLogs.length-1].date;
   const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds    
   const dayDiff = Math.round(Math.abs((lastRunDate - now) / ONE_DAY));
@@ -447,7 +445,7 @@ async function readRunLogsFromFile() {
 }
 
 async function _readRunLogsFromFile(file) {
-  let logsFromFile = null
+  let logsFromFile = [];
   await RNFS.readFile(file, 'utf8')
     .then((content) => {  // content: string
       console.log('--- App:: _readRunLogsFromFile(): from ' + file)
@@ -516,11 +514,11 @@ function weekOfYear(date) {
 }
 
 function getMonthLogs(monthAndYear /* e.g. 7.2019 */, runLogs) { 
-  let monthLogs = []
+  if(!runLogs) return;
+  let monthLogs = [];
   for (const log of runLogs) {  
-    if (monthAndYear === getMonthAndYear(log.date)) {
-      monthLogs.push(log);
-    }
+    if (monthAndYear === getMonthAndYear(log.date)) 
+      monthLogs.push(log);  
   }
   return monthLogs;
 }
