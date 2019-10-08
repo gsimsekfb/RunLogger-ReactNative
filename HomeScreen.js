@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import { Image, StyleSheet, View, Text, FlatList, TouchableOpacity, AppState } from 'react-native';
+import { Image, StyleSheet, View, Text, FlatList, TouchableOpacity, AppState, 
+  ToastAndroid } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import RNFS from 'react-native-fs'; // https://github.com/itinance/react-native-fs
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
@@ -12,9 +13,8 @@ import AddEditDialog from './src/AddEditDialog';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 /* Todos 
-  - DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
+  R DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
   - File not written error info
-  - Simplify homescreen: sol: Forward dec.?
   - google, fb login
   - Settings too many renders
   - Async ops
@@ -84,10 +84,9 @@ const App = ({navigation}) => {
 
   //// New s_fileToSaveRunLogs comes from Settings screen
   const s_fileToSaveRunLogs = navigation.getParam('s_fileToSaveRunLogs')
-  if(s_fileToSaveRunLogs && s_fileToSaveRunLogs !== fileToLoadSaveRunLogs) {
+  if(s_fileToSaveRunLogs && s_fileToSaveRunLogs !== fileToLoadSaveRunLogs) 
     changeRunLogFile(s_fileToSaveRunLogs, runLogs);
-  }
-
+  
   async function loadRunLogsFromFile() {
     setRunLogs(await readRunLogsFromFile());
   }
@@ -111,7 +110,7 @@ const App = ({navigation}) => {
       let newRunLogs = [...runLogs];
       newRunLogs.splice(newRunLogs.findIndex(v => v.timestamp === logToEdit.timestamp) , 1);
       newRunLogs = [...newRunLogs, newLogEdited].sort((a,b) => a.timestamp - b.timestamp)
-      writeToFile(newRunLogs);
+      writeToFile(fileToLoadSaveRunLogs, newRunLogs);
       setRunLogs(newRunLogs)
       setSelectedItemIndex(-1)      
       setLogToEdit(null)      
@@ -120,7 +119,7 @@ const App = ({navigation}) => {
       const newRunLogs = [...runLogs, newLogEdited].sort((a,b) => a.timestamp - b.timestamp);
       setRunLogs(newRunLogs)
       console.log('--- App:: Adding new log...')          
-      writeToFile(newRunLogs);
+      writeToFile(fileToLoadSaveRunLogs, newRunLogs);
     }
   }
   
@@ -179,7 +178,7 @@ const App = ({navigation}) => {
     setRunLogs(newRunLogs)
     setSelectedItemIndex(-1)      
     setLogToEdit(null)
-    writeToFile(newRunLogs);
+    writeToFile(fileToLoadSaveRunLogs, newRunLogs);
   }
 
   function onEditButtonPress() {
@@ -304,7 +303,7 @@ const App = ({navigation}) => {
       }
       <Modal isVisible={showConfirmDeleteDialog}>      
         <View style={styles.confirmDeleteDialog}>
-          <Text style={{fontSize: 18, margin: 0, textAlign: 'center'}}>  
+          <Text style={{fontSize: 18, marginTop: 10, textAlign: 'center'}}>  
               Are you sure to delete this run log?
           </Text>                                  
           <View style={{ marginTop: 40, flexDirection: 'row-reverse', backgroundColor: '',}}>
@@ -464,18 +463,18 @@ async function _readRunLogsFromFile(file) {
 }
 
 // Todo: Clear instead of delete (Update: Check later, no API to this currently)
-async function writeToFile(newRunLogs) {
+async function writeToFile(file, newRunLogs) {
   let result = false;
-  await RNFS.unlink(fileToLoadSaveRunLogs).then(() => {
+  await RNFS.unlink(file).then(() => {
     console.log('FILE DELETED');
   })
   .catch(err => { // `unlink` will throw an error, if the item to unlink does not exist
     console.log('writeToFile()-1: ' + err.message);
   });        
 
-  await RNFS.writeFile(fileToLoadSaveRunLogs, JSON.stringify(newRunLogs), 'utf8')
+  await RNFS.writeFile(file, JSON.stringify(newRunLogs), 'utf8')
   .then(success => {
-    console.log('Runlogs WRITTEN to file: ' + fileToLoadSaveRunLogs);        
+    console.log('Runlogs WRITTEN to file: ' + file);        
     result = true;
   })
   .catch(err => {
@@ -486,15 +485,21 @@ async function writeToFile(newRunLogs) {
 
 async function changeRunLogFile(new_fileToSaveRunLogs, runLogs) {
   console.log('--- App:: changeRunLogFile() to new file: ' + new_fileToSaveRunLogs);
-  fileToLoadSaveRunLogs = new_fileToSaveRunLogs;
-  const result = await writeToFile(runLogs);
-  if(result) 
-    await saveSetting(SETTING_KEYS.fileToSaveRunLogs, fileToLoadSaveRunLogs);
-  else {
-    console.log('--- App:: changeRunLogFile() failed. Error: Cannot write to new file'); 
-    return;
+  const result = await writeToFile(new_fileToSaveRunLogs, runLogs);
+  if(result) {
+    fileToLoadSaveRunLogs = new_fileToSaveRunLogs;
+    await saveSetting(SETTING_KEYS.fileToSaveRunLogs, new_fileToSaveRunLogs);
+    console.log('--- App:: changeRunLogFile() completed with success');
+    ToastAndroid.showWithGravityAndOffset(
+      'Run log file changed with success',
+      ToastAndroid.LONG, ToastAndroid.CENTER, 25, 50);
   }
-  console.log('--- App:: changeRunLogFile() completed with success');
+  else {
+    console.log('--- App:: changeRunLogFile() failed. Error: Cannot write to new file.'); 
+    ToastAndroid.showWithGravityAndOffset(
+      'Error: Failed to change run log file. Cannot write to the file. ',
+      ToastAndroid.LONG, ToastAndroid.CENTER, 25, 50,);
+  }
 }
 
 function disableYellowBoxWarnings() {
