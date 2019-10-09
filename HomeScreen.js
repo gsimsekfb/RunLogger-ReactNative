@@ -14,7 +14,6 @@ import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 /* Todos 
   R DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
-  - File not written error info
   - google, fb login
   - Settings too many renders
   - Async ops
@@ -529,7 +528,7 @@ function getMonthLogs(monthAndYear /* e.g. 7.2019 */, runLogs) {
 }
 
 // returns: '7.2019'
-function getMonthAndYear(date) {
+export function getMonthAndYear(date) {
   return (date.getMonth() + 1 + '.' + date.getFullYear())
 }
 
