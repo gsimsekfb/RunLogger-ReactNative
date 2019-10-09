@@ -1,4 +1,5 @@
 
+import { when } from 'jest-when'
 import {getMonthAndYear} from './HomeScreen';
 
 // 1
@@ -7,24 +8,35 @@ test('getMonthAndYear()', () => {
   expect(monthAndYear).toBe('12.1995');
 })
 
+
 // 2.a Mocking Add function calls/returns using jest-when
 // npm i --save-dev jest-when
+const _mockAdd = jest.fn()
+when(_mockAdd).calledWith(1,2).mockReturnValue(3)
+when(_mockAdd).calledWith(3,2).mockReturnValue(5)
+
+test('mockAdd-a', () => {
+  expect(_mockAdd(1,2)).toEqual(3);
+  expect(_mockAdd(3,2)).toEqual(5);
+});
 
 
 // 2.b Mocking Add function calls/returns by hand
-test('mockAdd', () => {
-  mockData.map(
+test('mockAdd-b', () => {
+  mockDataForAdd.map(
     e => expect(mockAdd(e.x, e.y)).toBe(e.result)
   );  
+  // or 
+  expect(mockAdd(1,2)).toBe(3);
 })
 
 function mockAdd(x, y) {
-  const arr = mockData.filter(e => (e.x === x && e.y === y));  
+  const arr = mockDataForAdd.filter(e => (e.x === x && e.y === y));  
   // if(arr === undefined) return null; // ?? not working
   return arr[0].result;
 }
 
-const mockData = [
+const mockDataForAdd = [
   { x: 1, y: 2, result: 3 },
   { x: 2, y: 2, result: 4 },
   { x: 2, y: 4, result: 6 }
