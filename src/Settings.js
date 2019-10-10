@@ -102,7 +102,7 @@ const Settings = ({navigation}) => {
         </Text>            
         <TouchableOpacity style={styles.button} onPress={onEnableLoggingPress}>
           { loggingEnabled ? <Image source={require('./icons/enable.png')} style={{marginLeft: 14}}/> 
-                            : <Image source={require('./icons/disable.png')} style={{marginLeft: 14}}/> 
+                            : <Image source={require('./icons/disable-2.png')} style={{marginLeft: 14}}/> 
           }
         </TouchableOpacity>
       </View >          

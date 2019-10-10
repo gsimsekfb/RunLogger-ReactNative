@@ -192,6 +192,7 @@ repositories {
 }
 
 dependencies {
+    implementation project(':react-native-splash-screen')
     implementation project(':react-native-file-selector')
     implementation project(':react-native-fs')
     implementation fileTree(dir: "libs", include: ["*.jar"])

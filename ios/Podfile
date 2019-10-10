@@ -33,6 +33,8 @@ target 'RunLogger' do
 
   pod 'RNFileSelector', :path => '../node_modules/react-native-file-selector'
 
+  pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
+
   target 'RunLoggerTests' do
     inherit! :search_paths
     # Pods for testing

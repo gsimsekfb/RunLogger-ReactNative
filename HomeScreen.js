@@ -8,6 +8,7 @@ import DeviceInfo from 'react-native-device-info'
 import GestureRecognizer from 'react-native-swipe-gestures';
 import AsyncStorage from '@react-native-community/async-storage';
 import Modal from 'react-native-modal';
+import SplashScreen from 'react-native-splash-screen'
 
 import AddEditDialog from './src/AddEditDialog';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
@@ -15,12 +16,9 @@ import {SETTING_KEYS, saveSetting} from './src/Settings';
 /* Todos 
   R DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
   - google, fb login
-  - Settings too many renders
-  - Async ops
-  - Enable log runtime release build 
 
   Next
-  - Load from settings file   
+  -  
  */
 
 const MONTH_NAMES = Object.freeze(["January", "February", "March", "April", "May", "June",
@@ -38,9 +36,13 @@ let appState = AppState.currentState;
 let runLogsBeforeSleep = [];
 
 const App = ({navigation}) => {
+  
   console.log('\n\n')
   console.log('----- Debug: App Start -------: ' + ++progCounter)   
   console.log('--- App:: fileToLoadSaveRunLogs: ' + fileToLoadSaveRunLogs);
+
+  //// 
+  SplashScreen.hide();  // todo: Hide if not hidden before
 
   //// State variables 
   const [runLogs, setRunLogs] = useState([]);
@@ -65,17 +67,18 @@ const App = ({navigation}) => {
 		  }
 		}
   );
+  
+  //// Handle wakeups
+  if(appState === 'background') { 
+    appState = 'active';
+    setRunLogs(runLogsBeforeSleep);
+  }
 
   //// Handle wakeup from sleep
   // To fix problem: runLogs comes empty after wake up from sleep
   function handleAppStateChange (nextAppState) {
     if(nextAppState === 'background') runLogsBeforeSleep = runLogs;
     appState = nextAppState;
-  }
-    
-  if(appState === 'background') { 
-    appState = 'active';
-    setRunLogs(runLogsBeforeSleep);
   }
 
   //// Logging
@@ -88,7 +91,7 @@ const App = ({navigation}) => {
   
   async function loadRunLogsFromFile() {
     setRunLogs(await readRunLogsFromFile());
-  }
+  }  
 
   //// First app start
   if(progCounter === 1) 
