@@ -1,13 +1,16 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
-  StyleSheet, View, Text, TextInput, TouchableOpacity
+  StyleSheet, View, Text, TextInput, TouchableOpacity, Image
 } from 'react-native';
 import Modal from 'react-native-modal';
-import MyDatePicker from './MyDatePicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+const MARGIN_BOTTOM = 10;
 
 const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
 
     const [firstLoad, setFirstLoad] = useState(true);
+    const [calendarVisible, setCalendarVisible] = useState(false);
     const inputRef = useRef(null);
     useEffect(                
       () => { 
@@ -19,31 +22,34 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
     );        
 
     const isAddDialog = (logToEdit === null)
-    const [min, setMin]= useState(isAddDialog ? '' : String(logToEdit.min))
-    const [distance, setDistance]= useState(isAddDialog ? '' : String(logToEdit.distance))
+    const [date, setDate]= useState(isAddDialog ? new Date() : logToEdit.date);
+    const initialMin = isAddDialog ? '' : String(logToEdit.min > 0 ? logToEdit.min :'');
+    const [min, setMin]= useState(initialMin)
+    const initialDistance = isAddDialog ? '' : String(logToEdit.distance > 0 ? logToEdit.distance :'');
+    const [distance, setDistance]= useState(initialDistance);
     const [notes, setNotes]= useState(isAddDialog ? '' : logToEdit.notes)
-    const initialDate = isAddDialog ? new Date() : logToEdit.date;
-    const [dateFromDatePicker, setDateFromDatePicker] = useState(null);
-  
-    const _dataFromDatePicker = (data) => {    
-      setDateFromDatePicker(data);
-    }
+    // let date = isAddDialog ? new Date() : logToEdit.date;
 
     function onSave() {
       const minFinal = min.includes('+') 
         ? Number(min.substr(0, min.indexOf('+'))) + Number(min.substr(min.indexOf('+')+1, min.length)) 
         : Number(min);                
       let notesFinal = min.includes('+') ? min + (notes === '' ? '' : ' , ' + notes) : notes
-      sendData( {date: dateFromDatePicker, min: minFinal, distance: Number(distance), notes: notesFinal } )
+      sendData( {date: date, min: minFinal, distance: Number(distance), notes: notesFinal } )
       console.log('--- AddEditDialog::save() pressed')        
     }
 
     function onDurationChange(text) {
       if(text.endsWith(' ')) text = text.replace(' ', '+'); 
       setMin(text);
-    }
+    }    
   
-    const MARGIN_BOTTOM = 10;
+    function dateChange(event, date) {
+      setCalendarVisible(false);
+      setDate(date);
+    }
+
+    console.log('--- AddEditDialog::date: ' + date);
 
     return(
       <Modal
@@ -56,9 +62,20 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
           <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}>  
               { (isAddDialog ? 'Add' : 'Edit') + ' Log' }
           </Text>           
-          <View style={{flexDirection: 'row', marginBottom: MARGIN_BOTTOM }}>
-            <MyDatePicker initialDate={initialDate} sendData={_dataFromDatePicker}/>
-          </View>
+          <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
+            <TextInput
+              editable = {false}
+              style={styles.textInput}              
+              value={date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear()}
+            />
+            <TouchableOpacity onPress={() => setCalendarVisible(true)}>
+              <Image source={require('./icons/calendar.png')} style={{marginLeft: 6}}/>                      
+            </TouchableOpacity>
+            { calendarVisible && 
+              <DateTimePicker value={date} mode={'date'} is24Hour={true} display="default"
+                              onChange={dateChange} />
+            }               
+          </View>  
           <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: MARGIN_BOTTOM}}>
             <TextInput
               style={styles.textInput}
@@ -113,7 +130,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
       borderColor: 'rgba(0, 0, 0, 0.1)',
     },
     textInput: {
-      flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1
+      flex:1, height: 40, fontSize: 16, borderColor: 'gray', borderWidth: 1, color: 'black'
     }    
    });
 

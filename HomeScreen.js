@@ -14,7 +14,6 @@ import AddEditDialog from './src/AddEditDialog';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 /* Todos 
-  R DateTime Spinner problem on phy. device (react native android 7.0 datepicker calendar spinner)
   - google, fb login
 
   Next
@@ -100,11 +99,10 @@ const App = ({navigation}) => {
   // Add or edit new log (AddEditDialog save button pressed)
   function addOrEditNewLog (newLog) {  
     setShowAddEditDialog(false);
-
-    const dateFromDatePicker = getDateObjFromDateStr(newLog.date);    
-    const newLogEdited = { // next: Get Date() object from DatePicker      
-      timestamp: parseInt(dateFromDatePicker.getTime()/1000, 10),
-      date: dateFromDatePicker, min: newLog.min, 
+    
+    const newLogEdited = {    
+      timestamp: parseInt(newLog.date.getTime()/1000, 10),
+      date: newLog.date, min: newLog.min, 
       distance: newLog.distance, notes: newLog.notes 
     }
     if(logToEdit !== null) { // Edit (delete and re-create) existing log
@@ -405,8 +403,9 @@ function createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex) {
       const dateStr = log.date.getDate() + ' ' + MONTH_NAMES[log.date.getMonth()].substring(0,3) + ', ' + 
                       DAY_NAMES[log.date.getDay()];
       // Min, meter, notes
-      const min = log.min === 0 ? '' : (log.min + ' min ');      
-      const dis = log.distance === 0 ? '' : (', ' + log.distance + ' meters ');
+      const min = log.min === 0 ? '' : (log.min + ' min ');
+      const optComma = min === '' ? '' : ', ';
+      const dis = log.distance === 0 ? '' : (optComma + log.distance + ' meters ');
       const notes =  log.notes === '' ? '' : '(' + log.notes + ')';
       dataForFlatList.push({ timestamp: log.timestamp, monthLogIndex: i, key: dateStr + ' - ' + min + dis + 
                           notes, type: ITEM_TYPE.runData })    
@@ -420,18 +419,6 @@ function createDataForFlatList(runLogs, screenMonthAndYear, selectedItemIndex) {
   }    
   return dataForFlatList;
 }
-
-function getDateObjFromDateStr(date) {
-  if(date && date instanceof Date) return date;    
-  // Note: The date from MyDatePicker comes as string     
-  const d = date.split('-')[0];
-  const m = date.split('-')[1];
-  const y = date.split('-')[2].split(' ')[0];
-  const time = date.split(' ')[1];
-  const hh = time.split(':')[0];
-  const mm = time.split(':')[1];
-  return(new Date(y,m-1,d,hh,mm));    
-} 
 
 async function readRunLogsFromFile() {
   try {
