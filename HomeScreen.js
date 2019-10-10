@@ -53,8 +53,8 @@ const App = ({navigation}) => {
   //
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   // Item Press
-  const [monthLogIndex, setMonthLogIndex] = useState(-1);         // monthLog array index of selected UI item
-  const [selectedItemIndex, setSelectedItemIndex] = useState(-1); // UI row index
+  const [monthLogIndex, setMonthLogIndex] = useState(-1);  // monthLog array index of selected UI item
+  const [selectedItemIndex, setSelectedItemIndex] = useState(-1);  // UI row index
   //
   const [showConfirmDeleteDialog, setShowConfirmDeleteDialog] = useState(false);
   const [logToEdit, setLogToEdit] = useState();  

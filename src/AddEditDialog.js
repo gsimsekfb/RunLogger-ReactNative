@@ -16,7 +16,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
             setFirstLoad(false);
         }
       }
-    );    
+    );        
 
     const isAddDialog = (logToEdit === null)
     const [min, setMin]= useState(isAddDialog ? '' : String(logToEdit.min))
@@ -50,6 +50,7 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
         style={styles.container}
         isVisible={true}
         onBackdropPress={() => hideAddEditDialog()}
+        onBackButtonPress={() => hideAddEditDialog() }
       >
         <View style={styles.content}>
           <Text style={{fontSize: 18, marginBottom: 18, textAlign: 'center'}}>  
