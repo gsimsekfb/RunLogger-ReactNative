@@ -67,13 +67,12 @@ const App = ({navigation}) => {
 		}
   );
   
-  //// Handle wakeups
+  //// Handle wakeup from sleep
   if(appState === 'background') { 
     appState = 'active';
     setRunLogs(runLogsBeforeSleep);
   }
 
-  //// Handle wakeup from sleep
   // To fix problem: runLogs comes empty after wake up from sleep
   function handleAppStateChange (nextAppState) {
     if(nextAppState === 'background') runLogsBeforeSleep = runLogs;
@@ -198,7 +197,7 @@ const App = ({navigation}) => {
     setShowAddEditDialog(true)
   }  
 
-  //// Three dots menu
+  //// --- Three dots menu
   let _menuThreeDot = null;
   setMenuRef = ref => _menuThreeDot = ref;
   showThreeDotMenu = () => _menuThreeDot.show();
@@ -375,7 +374,7 @@ const styles = StyleSheet.create({
   },
 });
 
-//// -------------------- Independent Functions
+//// -------------------- Functions
 
 function lastRunStr(runLogs, now) {
   if(!runLogs || runLogs.length < 1) return 'N/A';
