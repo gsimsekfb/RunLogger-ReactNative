@@ -509,12 +509,7 @@ function weekOfYear(date) {
 
 function getMonthLogs(monthAndYear /* e.g. 7.2019 */, runLogs) { 
   if(!runLogs) return;
-  let monthLogs = [];
-  for (const log of runLogs) {  
-    if (monthAndYear === getMonthAndYear(log.date)) 
-      monthLogs.push(log);  
-  }
-  return monthLogs;
+  return(runLogs.filter(log => monthAndYear === getMonthAndYear(log.date)));
 }
 
 // returns: '7.2019'
