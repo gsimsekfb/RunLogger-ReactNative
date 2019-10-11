@@ -14,7 +14,7 @@ import AddEditDialog from './src/AddEditDialog';
 import {SETTING_KEYS, saveSetting} from './src/Settings';
 
 /* Todos 
-  - google, fb login
+  - Func style refactor
 
   Next
   -  

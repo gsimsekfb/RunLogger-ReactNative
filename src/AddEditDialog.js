@@ -46,10 +46,8 @@ const AddEditDialog = ({ logToEdit, hideAddEditDialog, sendData }) => {
   
     function dateChange(event, date) {
       setCalendarVisible(false);
-      setDate(date);
+      if(date) setDate(date);
     }
-
-    console.log('--- AddEditDialog::date: ' + date);
 
     return(
       <Modal
