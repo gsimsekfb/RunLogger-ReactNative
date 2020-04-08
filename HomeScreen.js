@@ -503,7 +503,7 @@ function disableYellowBoxWarnings() {
 
 function weekOfYear(date) {
   const onejan = new Date(date.getFullYear(), 0, 1);
-  return( Math.ceil( (((date - onejan) / 86400000) + onejan.getDay() + 1) / 7 ) );
+  return( Math.ceil( (((date - onejan) / 86400000) + onejan.getDay() -1) / 7 ) );
 }
 
 function getMonthLogs(monthAndYear /* e.g. 7.2019 */, runLogs) { 
